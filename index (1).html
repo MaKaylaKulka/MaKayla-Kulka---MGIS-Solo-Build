@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Type A Student Planner</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <h2>Type A <span>Planner</span></h2>
+                <p>High-Structure Academic Suite</p>
+            </div>
+            <nav class="nav-links">
+                <a href="#" class="nav-item active" data-view="dashboard">Dashboard</a>
+                <a href="#" class="nav-item" data-view="weekly">Weekly View</a>
+                <a href="#" class="nav-item" data-view="classes">Classes & Syllabus</a>
+                <a href="#" class="nav-item" data-view="habits">Habits & Meals</a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-badge">
+                    <span class="dot"></span> RIT Student Portal
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-title">
+                    <h1 id="view-title">Dashboard</h1>
+                    <p id="current-date">Loading date...</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline" id="sync-calendar-btn">Sync Calendar</button>
+                    <button class="btn btn-primary" id="open-upload-modal">+ Upload Syllabus</button>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <section class="view-section active" id="dashboard-view">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <h3>Classes Today</h3>
+                        <p class="metric-value" id="today-classes-count">3</p>
+                        <span class="metric-sub">On schedule</span>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Assignments Due</h3>
+                        <p class="metric-value" id="assignments-due-count">2</p>
+                        <span class="metric-sub warning">Due within 48h</span>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Habit Streak</h3>
+                        <p class="metric-value">5 Days</p>
+                        <span class="metric-sub success">Consistent pacing</span>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Water Tracking</h3>
+                        <p class="metric-value">64 / 80 oz</p>
+                        <span class="metric-sub">Almost there!</span>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card schedule-card">
+                        <div class="card-header">
+                            <h2>Today's Time-Block Schedule</h2>
+                            <span class="badge">Hourly View</span>
+                        </div>
+                        <div class="schedule-list" id="today-schedule-list">
+                            <div class="schedule-item">
+                                <span class="time">08:00 AM - 09:15 AM</span>
+                                <div class="details">
+                                    <h4>MGIS130 Lecture</h4>
+                                    <p>Golisano Hall · Systems Architecture</p>
+                                </div>
+                            </div>
+                            <div class="schedule-item">
+                                <span class="time">10:00 AM - 11:30 AM</span>
+                                <div class="details">
+                                    <h4>Hospitality Operations</h4>
+                                    <p>Saunders College · Room 210</p>
+                                </div>
+                            </div>
+                            <div class="schedule-item break">
+                                <span class="time">12:00 PM - 01:00 PM</span>
+                                <div class="details">
+                                    <h4>Chipotle Lunch & Rest Break</h4>
+                                    <p>Chicken build-your-own kids meal with brown rice</p>
+                                </div>
+                            </div>
+                            <div class="schedule-item">
+                                <span class="time">02:00 PM - 04:00 PM</span>
+                                <div class="details">
+                                    <h4>Project Build Session</h4>
+                                    <p>GitHub Repository & Code Refinement</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card priorities-card">
+                        <div class="card-header">
+                            <h2>Top Daily Priorities</h2>
+                            <button class="btn-text" id="add-priority-btn">+ Add</button>
+                        </div>
+                        <ul class="checkbox-list" id="priorities-list">
+                            <li>
+                                <label><input type="checkbox" checked> Finalize MGIS Build Project README</label>
+                            </li>
+                            <li>
+                                <label><input type="checkbox"> Test GitHub Pages deployment live link</label>
+                            </li>
+                            <li>
+                                <label><input type="checkbox"> Review syllabus upload parser edge cases</label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Weekly View -->
+            <section class="view-section" id="weekly-view">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Weekly Master Grid (Mon - Sun)</h2>
+                        <span class="badge">Balanced Load</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="planner-table">
+                            <thead>
+                                <tr>
+                                    <th>Day</th>
+                                    <th>Classes & Labs</th>
+                                    <th>Core Tasks / Deliverables</th>
+                                    <th>Meals & Wellness</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Monday</strong></td>
+                                    <td>MGIS130, Hosp Finance</td>
+                                    <td>Draft project architecture</td>
+                                    <td>Gym (Upper body)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tuesday</strong></td>
+                                    <td>Service Mgmt</td>
+                                    <td>Refine HTML/CSS styling</td>
+                                    <td>Hydration goal met</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Wednesday</strong></td>
+                                    <td>MGIS130 Lab</td>
+                                    <td>Implement JS event handlers</td>
+                                    <td>Cardio & core</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Thursday</strong></td>
+                                    <td>Tourism Dynamics</td>
+                                    <td>Prepare demo talking points</td>
+                                    <td>Meal prep</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Friday</strong></td>
+                                    <td>Independent Study</td>
+                                    <td>Submit Final Artifact to myCourses</td>
+                                    <td>Weekend rest start</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Classes & Syllabus View -->
+            <section class="view-section" id="classes-view">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Active Coursework & AI Syllabus Scanner</h2>
+                        <button class="btn btn-primary" id="trigger-scanner-btn">Run Syllabus Parser AI</button>
+                    </div>
+                    <p class="section-desc">Upload course syllabi to automatically extract assignments, weight distribution, and grade criteria into your database.</p>
+                    <div class="classes-grid" id="classes-grid">
+                        <div class="class-card accent-orange">
+                            <h3>MGIS 130</h3>
+                            <p class="instructor">Management Information Systems</p>
+                            <span class="weight">Build Project: 25%</span>
+                            <div class="progress-bar"><div class="fill" style="width: 85%;"></div></div>
+                        </div>
+                        <div class="class-card accent-amber">
+                            <h3>HSP 310</h3>
+                            <p class="instructor">Hospitality Operations Management</p>
+                            <span class="weight">Midterm Exam: 30%</span>
+                            <div class="progress-bar"><div class="fill" style="width: 60%;"></div></div>
+                        </div>
+                        <div class="class-card accent-brown">
+                            <h3>STAT 145</h3>
+                            <p class="instructor">Introduction to Statistics</p>
+                            <span class="weight">Weekly Quizzes: 20%</span>
+                            <div class="progress-bar"><div class="fill" style="width: 75%;"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Habits & Meals View -->
+            <section class="view-section" id="habits-view">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Daily Habits & Nutrition Tracker</h2>
+                        <span class="badge">Type A Routine</span>
+                    </div>
+                    <div class="habits-container">
+                        <div class="habit-row">
+                            <span>Morning Hydration (16oz water)</span>
+                            <input type="checkbox" checked class="habit-check">
+                        </div>
+                        <div class="habit-row">
+                            <span>Chipotle Balanced Lunch (Chicken & Brown Rice)</span>
+                            <input type="checkbox" checked class="habit-check">
+                        </div>
+                        <div class="habit-row">
+                            <span>GitHub Code Commit & Push</span>
+                            <input type="checkbox" class="habit-check">
+                        </div>
+                        <div class="habit-row">
+                            <span>Evening Review & Next-Day Time Block</span>
+                            <input type="checkbox" class="habit-check">
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Upload Syllabus Modal -->
+    <div class="modal" id="upload-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>AI Syllabus Parser & File Upload</h2>
+                <button class="close-btn" id="close-modal">&times;</button>
+            </div>
+            <div class="dropzone" id="dropzone">
+                <p>Drag & drop your syllabus PDF here or <strong>Browse files</strong></p>
+                <span class="file-info" id="file-name-display">No file selected</span>
+            </div>
+            <div class="extracted-preview" id="extracted-preview">
+                <h4>Extracted Data Preview (Processing Layer):</h4>
+                <ul id="preview-list">
+                    <li><em>Upload a syllabus to preview parsed assignments and due dates...</em></li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-modal">Cancel</button>
+                <button class="btn btn-primary" id="confirm-upload" disabled>Confirm & Save to Database</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
