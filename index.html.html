@@ -1,0 +1,2150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Type A Student Planner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Warm Autumn / Fall Aesthetic preserved cleanly for Phase 1 Wireframe */
+        :root {
+            --bg-main: #FDFBF7;
+            --bg-card: #FFFFFF;
+            --primary: #C85A17;
+            --primary-hover: #A64710;
+            --accent: #E08236;
+            --text-main: #2C221E;
+            --text-muted: #7A6E65;
+            --border: #EBE3D5;
+            --sidebar-bg: #F4EBE1;
+            --success: #388E3C;
+            --warning: #D32F2F;
+            --radius: 10px;
+            --shadow: 0 3px 14px rgba(44, 34, 30, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            flex-shrink: 0;
+        }
+
+        .brand h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .brand h2 span {
+            color: var(--primary);
+        }
+
+        .brand p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .nav-links {
+            margin-top: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-item {
+            padding: 11px 14px;
+            background: transparent;
+            border: none;
+            text-align: left;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: var(--primary);
+            color: #FFFFFF;
+        }
+
+        .sidebar-alerts {
+            margin-top: 28px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .sidebar-alerts h4 {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .sidebar-alerts ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.78rem;
+            color: var(--text-main);
+        }
+
+        .sidebar-alerts li.urgent {
+            color: var(--warning);
+            font-weight: 600;
+        }
+
+        .full-width { width: 100%; }
+
+        /* Toast Notification Banner (Replaces blocked browser alert/confirm) */
+        .toast-banner {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--text-main);
+            color: #FFFFFF;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: all 0.2s ease;
+        }
+
+        .toast-banner.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 28px;
+        }
+
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header-left h1 {
+            font-size: 1.55rem;
+            font-weight: 700;
+        }
+
+        .date-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 4px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons & Inputs */
+        .btn {
+            padding: 9px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+        .btn-primary { background-color: var(--primary); color: #FFFFFF; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover { background: var(--border); }
+        .btn-text { background: none; border: none; color: var(--primary); font-weight: 600; cursor: pointer; font-size: 0.8rem; }
+        .btn-icon { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 3px 9px; cursor: pointer; font-weight: 700; }
+
+        input[type="text"], input[type="date"], input[type="time"], select, textarea {
+            width: 100%;
+            padding: 7px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            background: var(--bg-main);
+            color: var(--text-main);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: 2px solid var(--accent);
+            background: #FFFFFF;
+        }
+
+        /* Cards & Helpers */
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            gap: 8px;
+        }
+
+        .card-header h2 { font-size: 1.02rem; font-weight: 700; }
+        .subtext { font-size: 0.78rem; color: var(--text-muted); }
+        .badge { background: var(--sidebar-bg); color: var(--primary); font-size: 0.72rem; font-weight: 600; padding: 3px 9px; border-radius: 12px; }
+        .mb-8 { margin-bottom: 8px; }
+        .mb-12 { margin-bottom: 12px; }
+        .mb-20 { margin-bottom: 20px; }
+        .mt-8 { margin-top: 8px; }
+        .hidden { display: none !important; }
+
+        /* ==================== DAILY LAYOUT ==================== */
+        .daily-layout {
+            display: grid;
+            grid-template-columns: 1.25fr 1.15fr 0.9fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .daily-middle-col, .daily-right-col {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .time-range-controls {
+            display: flex;
+            gap: 8px;
+            font-size: 0.78rem;
+        }
+
+        .time-range-controls label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-muted);
+        }
+
+        .time-range-controls select {
+            width: auto;
+            padding: 4px 6px;
+            font-size: 0.78rem;
+        }
+
+        .inline-block-adder {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+            background: var(--bg-main);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .inline-block-adder select {
+            width: 115px;
+            flex-shrink: 0;
+        }
+
+        .time-grid {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .time-slot-row {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            min-height: 44px;
+            cursor: pointer;
+            transition: background 0.12s;
+        }
+
+        .time-slot-row:last-child { border-bottom: none; }
+        .time-slot-row:hover { background-color: #FAF4EC; }
+
+        .time-slot-label {
+            width: 78px;
+            padding: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: var(--bg-main);
+            border-right: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .time-slot-content {
+            flex: 1;
+            padding: 6px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .block-pill {
+            padding: 5px 9px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #FDECE2;
+            border-left: 4px solid var(--primary);
+            color: var(--text-main);
+        }
+
+        .block-pill.custom {
+            background: #FFF3E0;
+            border-left-color: var(--accent);
+        }
+
+        .block-pill button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-weight: 700;
+            margin-left: 8px;
+        }
+
+        /* Inline Forms & Checklists */
+        .inline-add-form {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .inline-add-form select { width: 110px; flex-shrink: 0; }
+        .inline-add-form button { flex-shrink: 0; }
+
+        .checkbox-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .checkbox-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px;
+            background: var(--bg-main);
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .checkbox-list li.done span {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .checkbox-list label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .tag-pill {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--sidebar-bg);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .notes-split {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .field-label, .field-group label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .meal-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .check-inline {
+            font-size: 0.82rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        /* ==================== WEEKLY LAYOUT ==================== */
+        .weekly-event-form {
+            display: grid;
+            grid-template-columns: 140px 110px 1fr 150px auto;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: var(--bg-main);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .week-days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .week-day-col {
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 360px;
+        }
+
+        .week-day-col.today-col {
+            border: 2px solid var(--primary);
+            background: #FFFDF9;
+        }
+
+        .week-day-header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 6px;
+            text-align: center;
+        }
+
+        .week-day-header h4 { font-size: 0.85rem; font-weight: 700; }
+        .week-day-header span { font-size: 0.72rem; color: var(--text-muted); }
+
+        .week-sub-box h5 {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .week-mini-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 0.76rem;
+        }
+
+        .week-mini-list li {
+            background: var(--bg-card);
+            padding: 4px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .week-mini-list li.due-item {
+            border-left: 3px solid var(--warning);
+            font-weight: 600;
+        }
+
+        .priority-slot-input {
+            padding: 4px 6px !important;
+            font-size: 0.76rem !important;
+            margin-bottom: 4px;
+            background: var(--bg-card) !important;
+        }
+
+        .weekly-bottom-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 18px;
+        }
+
+        .table-responsive { overflow-x: auto; }
+        .planner-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .planner-table th { background: var(--sidebar-bg); font-weight: 600; border-bottom: 1px solid var(--border); }
+        .planner-table td { border-bottom: 1px solid var(--border); }
+        .compact-table th, .compact-table td {
+            padding: 8px 10px;
+            font-size: 0.8rem;
+        }
+
+        .weekly-fitness-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .fitness-day-row {
+            display: grid;
+            grid-template-columns: 75px 1fr;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+        }
+
+        /* ==================== MONTHLY LAYOUT ==================== */
+        .monthly-layout {
+            display: grid;
+            grid-template-columns: 2.2fr 1fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            padding-bottom: 8px;
+        }
+
+        .monthly-calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+
+        .cal-day-cell {
+            min-height: 92px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px;
+            background: var(--bg-main);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .cal-day-cell:hover { border-color: var(--primary); }
+        .cal-day-cell.empty { background: transparent; border: none; cursor: default; }
+        .cal-day-cell.is-today { border: 2px solid var(--primary); background: #FFF8F2; }
+
+        .cal-day-num {
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .cal-badge {
+            font-size: 0.68rem;
+            padding: 2px 5px;
+            border-radius: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cal-badge.assignment { background: #FDECEA; color: var(--warning); font-weight: 600; }
+        .cal-badge.event { background: var(--sidebar-bg); color: var(--primary); font-weight: 600; }
+
+        /* ==================== MODALS ==================== */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(44, 34, 30, 0.55);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 24px;
+            width: 100%;
+            max-width: 780px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .upload-controls-row {
+            display: grid;
+            grid-template-columns: 1.3fr 1.2fr auto;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .staging-box {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            background: var(--bg-main);
+            margin-bottom: 16px;
+        }
+
+        .staging-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .filter-row { display: flex; gap: 8px; }
+        .filter-row select { width: auto; }
+        .empty-cell { text-align: center; color: var(--text-muted); padding: 16px; }
+
+        .classes-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .class-card {
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        @media (max-width: 1200px) {
+            .daily-layout { grid-template-columns: 1fr; }
+            .week-days-grid { grid-template-columns: repeat(2, 1fr); }
+            .weekly-bottom-grid { grid-template-columns: 1fr; }
+            .monthly-layout { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+            .nav-links { flex-direction: row; margin-top: 12px; }
+            .week-days-grid { grid-template-columns: 1fr; }
+            .upload-controls-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- In-App Toast Message Banner -->
+    <div class="toast-banner" id="toast-banner"></div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation (3 Core Tabs) -->
+        <aside class="sidebar">
+            <div>
+                <div class="brand">
+                    <h2>Type A <span>Planner</span></h2>
+                    <p>Phase 1 &middot; Functional MVP</p>
+                </div>
+                <nav class="nav-links">
+                    <button class="nav-item active" data-view="daily">Daily Spread</button>
+                    <button class="nav-item" data-view="weekly">Weekly Spread</button>
+                    <button class="nav-item" data-view="monthly">Monthly Calendar</button>
+                </nav>
+
+                <!-- Quick Alert Box for Upcoming Deadlines -->
+                <div class="sidebar-alerts" id="sidebar-alerts">
+                    <h4>Smart Reminders</h4>
+                    <ul id="smart-alerts-list">
+                        <li>No urgent alerts</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <button class="btn btn-outline full-width" id="reset-demo-btn" title="Restore sample schedule & assignments">Reset Demo Data</button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <h1 id="view-title">Daily Spread</h1>
+                    <div class="date-controls">
+                        <button class="btn-icon" id="prev-period-btn" title="Previous">&larr;</button>
+                        <span id="active-date-label">Wednesday, November 18, 2026</span>
+                        <button class="btn-icon" id="next-period-btn" title="Next">&rarr;</button>
+                        <button class="btn-text" id="today-btn">Today</button>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline" id="open-master-btn">Classes &amp; Assignments</button>
+                    <button class="btn btn-primary" id="open-upload-modal">+ Upload Documents</button>
+                </div>
+            </header>
+
+            <!-- ==================== DAILY VIEW ==================== -->
+            <section class="view-section active" id="daily-view">
+                <div class="daily-layout">
+                    <!-- Left Column: Customizable Time-Block Schedule -->
+                    <div class="card timeblock-card">
+                        <div class="card-header">
+                            <div>
+                                <h2>Hourly Time-Block Schedule</h2>
+                                <p class="subtext">Classes auto-populate; add or click any hour slot</p>
+                            </div>
+                            <div class="time-range-controls">
+                                <label>From:
+                                    <select id="start-hour-select"></select>
+                                </label>
+                                <label>To:
+                                    <select id="end-hour-select"></select>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Quick Time Block Form (Works without prompt dialogs) -->
+                        <form class="inline-block-adder" id="add-timeblock-form">
+                            <select id="block-hour-select"></select>
+                            <input type="text" id="block-title-input" placeholder="Add time block (e.g., Study Session)..." required>
+                            <button type="submit" class="btn btn-primary btn-sm">Block</button>
+                        </form>
+
+                        <div class="time-grid" id="daily-time-grid"></div>
+                    </div>
+
+                    <!-- Middle Column: Dual To-Do Lists & Notes/Future -->
+                    <div class="daily-middle-col">
+                        <!-- Homework To-Do List -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Homework To-Do</h2>
+                                <span class="badge">Auto + Manual</span>
+                            </div>
+                            <form class="inline-add-form" id="add-homework-form">
+                                <input type="text" id="homework-input" placeholder="Add homework task..." required>
+                                <select id="homework-class-select">
+                                    <option value="">General</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary btn-sm">+</button>
+                            </form>
+                            <ul class="checkbox-list" id="daily-homework-list"></ul>
+                        </div>
+
+                        <!-- General Tasks To-Do List -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>General Tasks</h2>
+                                <button class="btn-text" id="rollover-btn" title="Move unfinished tasks from previous day to today">Rollover Unfinished</button>
+                            </div>
+                            <form class="inline-add-form" id="add-general-form">
+                                <input type="text" id="general-input" placeholder="Add general task..." required>
+                                <button type="submit" class="btn btn-primary btn-sm">+</button>
+                            </form>
+                            <ul class="checkbox-list" id="daily-general-list"></ul>
+                        </div>
+
+                        <!-- Notes & Future To-Do -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Notes &amp; Future To-Do</h2>
+                                <span class="subtext">Auto-saved</span>
+                            </div>
+                            <div class="notes-split">
+                                <div>
+                                    <label class="field-label">Daily Scratchpad / Notes</label>
+                                    <textarea id="daily-notes-area" rows="4" placeholder="Lecture notes, reminders, brain dump..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="field-label">Future To-Do Backlog</label>
+                                    <textarea id="future-todo-area" rows="4" placeholder="Tasks to schedule later this month..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Meals & Workout Tracker -->
+                    <div class="daily-right-col">
+                        <!-- Daily Meals (Synced with Weekly Meal Plan) -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Today's Meals</h2>
+                                <span class="badge">Synced w/ Weekly</span>
+                            </div>
+                            <div class="meal-fields">
+                                <div class="field-group">
+                                    <label>Breakfast</label>
+                                    <input type="text" data-meal="breakfast" class="daily-meal-input" placeholder="Plan breakfast...">
+                                </div>
+                                <div class="field-group">
+                                    <label>Lunch</label>
+                                    <input type="text" data-meal="lunch" class="daily-meal-input" placeholder="Plan lunch...">
+                                </div>
+                                <div class="field-group">
+                                    <label>Dinner</label>
+                                    <input type="text" data-meal="dinner" class="daily-meal-input" placeholder="Plan dinner...">
+                                </div>
+                                <div class="field-group">
+                                    <label>Snacks / Hydration</label>
+                                    <input type="text" data-meal="snacks" class="daily-meal-input" placeholder="Snacks & water goal...">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Daily Workout Schedule & Tracker (Synced with Weekly Fitness) -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Workout &amp; Fitness</h2>
+                                <label class="check-inline">
+                                    <input type="checkbox" id="daily-workout-done"> Completed
+                                </label>
+                            </div>
+                            <div class="field-group">
+                                <label>Planned Workout / Activity</label>
+                                <input type="text" id="daily-workout-plan" placeholder="e.g., Upper Body Strength + 20m Walk">
+                            </div>
+                            <div class="field-group" style="margin-top: 10px;">
+                                <label>Workout Notes / Sets / Reps</label>
+                                <textarea id="daily-workout-notes" rows="4" placeholder="Log weights, cardio time, or energy level..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== WEEKLY VIEW ==================== -->
+            <section class="view-section" id="weekly-view">
+                <!-- Weekly Top Action Bar: Add Event/Activity -->
+                <div class="card mb-20">
+                    <div class="card-header">
+                        <h2>Weekly Breakdown (Mon &ndash; Sun)</h2>
+                        <button class="btn btn-primary btn-sm" id="toggle-weekly-event-form">+ Add Event / Activity</button>
+                    </div>
+                    <form class="weekly-event-form hidden" id="weekly-event-form">
+                        <input type="date" id="week-event-date" required>
+                        <input type="time" id="week-event-time" value="15:00" required>
+                        <input type="text" id="week-event-title" placeholder="Event or activity name..." required>
+                        <select id="week-event-type">
+                            <option value="event">Personal / Activity</option>
+                            <option value="study">Study Session</option>
+                            <option value="exam">Exam / Quiz</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">Add to Schedule</button>
+                    </form>
+
+                    <!-- 7-Day Columns Grid -->
+                    <div class="week-days-grid" id="week-days-grid"></div>
+                </div>
+
+                <!-- Weekly Meal Planner & Weekly Fitness Planner -->
+                <div class="weekly-bottom-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Weekly Meal Planner</h2>
+                            <span class="subtext">Edits sync automatically to Daily View</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="planner-table compact-table" id="weekly-meals-table">
+                                <thead>
+                                    <tr>
+                                        <th>Day</th>
+                                        <th>Breakfast</th>
+                                        <th>Lunch</th>
+                                        <th>Dinner</th>
+                                        <th>Snacks</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="weekly-meals-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Weekly Fitness &amp; Workout Plan</h2>
+                            <span class="subtext">Synced to Daily Tracker</span>
+                        </div>
+                        <div class="weekly-fitness-list" id="weekly-fitness-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== MONTHLY VIEW ==================== -->
+            <section class="view-section" id="monthly-view">
+                <div class="monthly-layout">
+                    <!-- Left: Monthly Calendar Grid -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 id="monthly-grid-heading">November 2026</h2>
+                            <button class="btn btn-primary btn-sm" id="toggle-monthly-event-form">+ Add Important Date</button>
+                        </div>
+                        <form class="weekly-event-form hidden" id="monthly-event-form">
+                            <input type="date" id="month-event-date" required>
+                            <input type="time" id="month-event-time" value="12:00" required>
+                            <input type="text" id="month-event-title" placeholder="Important date or event..." required>
+                            <select id="month-event-type">
+                                <option value="event">Important Event</option>
+                                <option value="exam">Major Exam</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary btn-sm">Save Date</button>
+                        </form>
+                        <div class="calendar-weekdays">
+                            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                        </div>
+                        <div class="monthly-calendar-grid" id="monthly-calendar-grid"></div>
+                    </div>
+
+                    <!-- Right: Top Priorities for the Month -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Top Priorities for the Month</h2>
+                            <span class="badge">Monthly Goals</span>
+                        </div>
+                        <form class="inline-add-form" id="add-monthly-priority-form">
+                            <input type="text" id="monthly-priority-input" placeholder="Add monthly priority..." required>
+                            <button type="submit" class="btn btn-primary btn-sm">+</button>
+                        </form>
+                        <ul class="checkbox-list" id="monthly-priorities-list"></ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ==================== DOCUMENT UPLOAD & STAGING MODAL ==================== -->
+    <div class="modal" id="upload-modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>Document Upload &amp; Auto-Distribution Staging</h2>
+                <button class="close-btn" id="close-upload-modal">&times;</button>
+            </div>
+            <p class="subtext mb-12">Upload a file or paste text from your syllabus, class schedule, or calendar. Review the extracted items below before saving—they will automatically populate your Daily, Weekly, and Monthly spreads.</p>
+
+            <div class="upload-controls-row">
+                <div class="field-group">
+                    <label>Document Type</label>
+                    <select id="doc-type-select">
+                        <option value="syllabus">Course Syllabus (Assignments + Class Times)</option>
+                        <option value="schedule">Class Schedule (Recurring Weekly Classes)</option>
+                        <option value="general">Other Document / Event List</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label>Select File (.txt, .csv, .pdf, .ics)</label>
+                    <input type="file" id="doc-file-input" accept=".txt,.csv,.pdf,.doc,.docx,.ics">
+                </div>
+                <div class="field-group" style="display:flex; flex-direction:column; justify-content:flex-end;">
+                    <button type="button" class="btn btn-outline btn-sm" id="load-sample-doc-btn">Load Sample Syllabus</button>
+                </div>
+            </div>
+
+            <div class="field-group mb-12">
+                <label>Document Text / Paste Syllabus or Schedule Lines</label>
+                <textarea id="doc-raw-text" rows="4" placeholder="Example format:
+Class: MGIS 130 | Days: Mon, Wed | Time: 08:00 - 09:15 | Location: Golisano Hall
+Assignment: MGIS 130 | Final Project Demo | Due: 2026-11-24 | Weight: 25% | Type: Exam
+Event: Thanksgiving Break Starts | Date: 2026-11-25"></textarea>
+                <button type="button" class="btn btn-primary btn-sm mt-8" id="parse-doc-btn">Extract &amp; Preview Items</button>
+            </div>
+
+            <!-- Staging Review Table -->
+            <div class="staging-box">
+                <div class="staging-header">
+                    <h4>Staging Review (Edit or remove before committing to planner)</h4>
+                    <button type="button" class="btn-text" id="add-staging-row-btn">+ Add Manual Row</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="planner-table compact-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Course / Tag</th>
+                                <th>Title</th>
+                                <th>Date or Days</th>
+                                <th>Time / Weight</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="staging-tbody">
+                            <tr><td colspan="6" class="empty-cell">Parse a document or load a sample above to preview extracted items.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-upload-modal">Cancel</button>
+                <button class="btn btn-primary" id="confirm-staging-btn" disabled>Confirm &amp; Distribute to Planner</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== CLASSES & MASTER ASSIGNMENTS MODAL ==================== -->
+    <div class="modal" id="master-modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>Classes &amp; Master Assignment Database</h2>
+                <button class="close-btn" id="close-master-modal">&times;</button>
+            </div>
+
+            <h4 class="mb-8">Active Courses</h4>
+            <div class="classes-grid mb-20" id="master-classes-grid"></div>
+
+            <div class="staging-header">
+                <h4>Master Assignment Table</h4>
+                <div class="filter-row">
+                    <select id="filter-class-select">
+                        <option value="ALL">All Classes</option>
+                    </select>
+                    <select id="sort-assignments-select">
+                        <option value="dueDate">Sort by Due Date</option>
+                        <option value="weight">Sort by Grade Weight (High &rarr; Low)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="planner-table compact-table">
+                    <thead>
+                        <tr>
+                            <th>Done</th>
+                            <th>Course</th>
+                            <th>Assignment</th>
+                            <th>Due Date</th>
+                            <th>Weight</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="master-assignments-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Type A Student Planner - Phase 1 Functional MVP (Relational Data + Auto-Distribution)
+        document.addEventListener('DOMContentLoaded', () => {
+            const STORAGE_KEY = 'typeA_planner_phase1_v1';
+            const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+            // Non-blocking toast banner for feedback
+            let toastTimer = null;
+            function showToast(msg) {
+                const toast = document.getElementById('toast-banner');
+                toast.textContent = msg;
+                toast.classList.add('show');
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+            }
+
+            // Default seed data aligned with Nov 18, 2026 so the app is immediately testable
+            function getDefaultState() {
+                return {
+                    settings: {
+                        startHour: 8,  // 8 AM default
+                        endHour: 22    // 10 PM default
+                    },
+                    classes: [
+                        { id: 'c1', code: 'MGIS 130', name: 'Management Information Systems', days: ['Mon', 'Wed'], startHour: 8, duration: 1, location: 'Golisano Hall' },
+                        { id: 'c2', code: 'HSP 310', name: 'Hospitality Operations', days: ['Tue', 'Thu'], startHour: 10, duration: 2, location: 'Saunders 210' },
+                        { id: 'c3', code: 'STAT 145', name: 'Intro to Statistics', days: ['Mon', 'Wed', 'Fri'], startHour: 13, duration: 1, location: 'Gosnell Hall' }
+                    ],
+                    assignments: [
+                        { id: 'a1', classCode: 'MGIS 130', title: 'Phase 1 Functional Build Check-in', dueDate: '2026-11-18', weight: '15%', isExam: false, done: false },
+                        { id: 'a2', classCode: 'HSP 310', title: 'Operations Case Study Analysis', dueDate: '2026-11-20', weight: '20%', isExam: false, done: false },
+                        { id: 'a3', classCode: 'STAT 145', title: 'Unit 3 Probability Exam', dueDate: '2026-11-24', weight: '30%', isExam: true, done: false }
+                    ],
+                    events: [
+                        { id: 'e1', date: '2026-11-19', time: '17:00', title: 'Academic Advisor Check-in', type: 'event' },
+                        { id: 'e2', date: '2026-11-26', time: '12:00', title: 'Thanksgiving Dinner w/ Family', type: 'event' }
+                    ],
+                    dailyData: {
+                        '2026-11-18': {
+                            customBlocks: [
+                                { id: 'b1', hour: 15, title: 'Code Review & GitHub Push' }
+                            ],
+                            homeworkTasks: [
+                                { id: 'hw1', text: 'Complete STAT 145 Practice Set 7', classCode: 'STAT 145', done: false }
+                            ],
+                            generalTasks: [
+                                { id: 'gt1', text: 'Pick up groceries for meal prep', done: false },
+                                { id: 'gt2', text: 'Email group members about presentation', done: true }
+                            ],
+                            notes: 'Focus on getting Phase 1 data flow rock solid before styling.',
+                            futureTodo: '- Order winter boots\n- Outline December finals study schedule',
+                            meals: {
+                                breakfast: 'Greek yogurt, berries & granola',
+                                lunch: 'Chipotle chicken bowl w/ brown rice',
+                                dinner: 'Grilled salmon, quinoa & roasted broccoli',
+                                snacks: 'Apple + 80oz water'
+                            },
+                            workout: {
+                                plan: 'Upper Body Strength (45 mins)',
+                                notes: 'Bench press 3x10, Rows 3x12, Shoulder press 3x10',
+                                done: false
+                            },
+                            top3: ['Finish Phase 1 MVP', 'Submit MGIS check-in', 'Hit 80oz water goal']
+                        }
+                    },
+                    monthlyPriorities: {
+                        '2026-11': [
+                            { id: 'mp1', text: 'Finish all 3 phases of Type A Student Planner', done: false },
+                            { id: 'mp2', text: 'Maintain >90% average across all courses', done: false }
+                        ]
+                    }
+                };
+            }
+
+            let state = loadState();
+            let currentView = 'daily';
+            let selectedDate = new Date(2026, 10, 18); // Nov 18, 2026 default
+            let stagingItems = [];
+
+            function loadState() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    return raw ? JSON.parse(raw) : getDefaultState();
+                } catch {
+                    return getDefaultState();
+                }
+            }
+
+            function saveState() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                } catch (e) {
+                    // Fallback in sandboxed storage environments
+                }
+                renderSmartAlerts();
+            }
+
+            // Date Utility Helpers
+            function formatDateKey(dateObj) {
+                const y = dateObj.getFullYear();
+                const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const d = String(dateObj.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
+
+            function formatMonthKey(dateObj) {
+                const y = dateObj.getFullYear();
+                const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                return `${y}-${m}`;
+            }
+
+            function parseLocalDate(dateStr) {
+                const [y, m, d] = dateStr.split('-').map(Number);
+                return new Date(y, m - 1, d);
+            }
+
+            function ensureDayRecord(dateKey) {
+                if (!state.dailyData[dateKey]) {
+                    state.dailyData[dateKey] = {
+                        customBlocks: [],
+                        homeworkTasks: [],
+                        generalTasks: [],
+                        notes: '',
+                        futureTodo: '',
+                        meals: { breakfast: '', lunch: '', dinner: '', snacks: '' },
+                        workout: { plan: '', notes: '', done: false },
+                        top3: ['', '', '']
+                    };
+                }
+                return state.dailyData[dateKey];
+            }
+
+            function getMondayOfWeek(dateObj) {
+                const d = new Date(dateObj);
+                const day = d.getDay();
+                const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                return new Date(d.setDate(diff));
+            }
+
+            function formatHourLabel(h) {
+                if (h === 0) return '12:00 AM';
+                if (h < 12) return `${h}:00 AM`;
+                if (h === 12) return '12:00 PM';
+                return `${h - 12}:00 PM`;
+            }
+
+            // ==================== NAVIGATION & DATE CONTROLS ====================
+            const navItems = document.querySelectorAll('.nav-item');
+            const viewSections = document.querySelectorAll('.view-section');
+            const viewTitle = document.getElementById('view-title');
+            const activeDateLabel = document.getElementById('active-date-label');
+
+            navItems.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    navItems.forEach(b => b.classList.remove('active'));
+                    viewSections.forEach(sec => sec.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentView = btn.dataset.view;
+                    document.getElementById(`${currentView}-view`).classList.add('active');
+                    viewTitle.textContent = btn.textContent;
+                    renderAll();
+                });
+            });
+
+            document.getElementById('prev-period-btn').addEventListener('click', () => {
+                if (currentView === 'daily') selectedDate.setDate(selectedDate.getDate() - 1);
+                else if (currentView === 'weekly') selectedDate.setDate(selectedDate.getDate() - 7);
+                else selectedDate.setMonth(selectedDate.getMonth() - 1);
+                renderAll();
+            });
+
+            document.getElementById('next-period-btn').addEventListener('click', () => {
+                if (currentView === 'daily') selectedDate.setDate(selectedDate.getDate() + 1);
+                else if (currentView === 'weekly') selectedDate.setDate(selectedDate.getDate() + 7);
+                else selectedDate.setMonth(selectedDate.getMonth() + 1);
+                renderAll();
+            });
+
+            document.getElementById('today-btn').addEventListener('click', () => {
+                selectedDate = new Date(2026, 10, 18);
+                renderAll();
+            });
+
+            document.getElementById('reset-demo-btn').addEventListener('click', () => {
+                state = getDefaultState();
+                saveState();
+                renderAll();
+                showToast('Demo schedule & assignments restored!');
+            });
+
+            function updateHeaderDateLabel() {
+                if (currentView === 'daily') {
+                    activeDateLabel.textContent = selectedDate.toLocaleDateString('en-US', {
+                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                    });
+                } else if (currentView === 'weekly') {
+                    const mon = getMondayOfWeek(selectedDate);
+                    const sun = new Date(mon);
+                    sun.setDate(mon.getDate() + 6);
+                    activeDateLabel.textContent = `Week of ${mon.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${sun.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+                } else {
+                    activeDateLabel.textContent = selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                }
+            }
+
+            // ==================== SMART ALERTS (7-DAY EXAM VS 24H HW) ====================
+            function renderSmartAlerts() {
+                const list = document.getElementById('smart-alerts-list');
+                list.innerHTML = '';
+                const alerts = [];
+
+                state.assignments.filter(a => !a.done).forEach(a => {
+                    const due = parseLocalDate(a.dueDate);
+                    const diffDays = Math.round((due - selectedDate) / (1000 * 60 * 60 * 24));
+                    if (a.isExam && diffDays >= 0 && diffDays <= 7) {
+                        alerts.push({ text: `EXAM (${diffDays === 0 ? 'Today' : diffDays + 'd'}): ${a.classCode} - ${a.title}`, urgent: true });
+                    } else if (!a.isExam && diffDays >= 0 && diffDays <= 2) {
+                        alerts.push({ text: `DUE (${diffDays === 0 ? 'Today' : diffDays + 'd'}): ${a.classCode} - ${a.title}`, urgent: diffDays === 0 });
+                    }
+                });
+
+                if (alerts.length === 0) {
+                    list.innerHTML = '<li>All caught up for upcoming deadlines!</li>';
+                    return;
+                }
+                alerts.forEach(al => {
+                    const li = document.createElement('li');
+                    if (al.urgent) li.className = 'urgent';
+                    li.textContent = al.text;
+                    list.appendChild(li);
+                });
+            }
+
+            // ==================== DAILY VIEW RENDERING ====================
+            const startHourSelect = document.getElementById('start-hour-select');
+            const endHourSelect = document.getElementById('end-hour-select');
+            const blockHourSelect = document.getElementById('block-hour-select');
+
+            function initTimeRangeSelectors() {
+                startHourSelect.innerHTML = '';
+                endHourSelect.innerHTML = '';
+                for (let h = 5; h <= 23; h++) {
+                    startHourSelect.appendChild(new Option(formatHourLabel(h), h, false, h === state.settings.startHour));
+                    endHourSelect.appendChild(new Option(formatHourLabel(h), h, false, h === state.settings.endHour));
+                }
+                refreshBlockHourDropdown();
+            }
+
+            function refreshBlockHourDropdown() {
+                const prev = blockHourSelect.value;
+                blockHourSelect.innerHTML = '';
+                for (let h = state.settings.startHour; h <= state.settings.endHour; h++) {
+                    blockHourSelect.appendChild(new Option(formatHourLabel(h), h));
+                }
+                if (prev && Number(prev) >= state.settings.startHour && Number(prev) <= state.settings.endHour) {
+                    blockHourSelect.value = prev;
+                }
+            }
+
+            startHourSelect.addEventListener('change', () => {
+                state.settings.startHour = Math.min(Number(startHourSelect.value), state.settings.endHour - 1);
+                refreshBlockHourDropdown();
+                saveState();
+                renderDailyView();
+            });
+
+            endHourSelect.addEventListener('change', () => {
+                state.settings.endHour = Math.max(Number(endHourSelect.value), state.settings.startHour + 1);
+                refreshBlockHourDropdown();
+                saveState();
+                renderDailyView();
+            });
+
+            document.getElementById('add-timeblock-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const hour = Number(blockHourSelect.value);
+                const titleInp = document.getElementById('block-title-input');
+                const dayRecord = ensureDayRecord(formatDateKey(selectedDate));
+                dayRecord.customBlocks.push({ id: 'blk_' + Date.now(), hour, title: titleInp.value.trim() });
+                titleInp.value = '';
+                saveState();
+                renderDailyView();
+                showToast(`Blocked ${formatHourLabel(hour)}`);
+            });
+
+            function renderDailyView() {
+                const dateKey = formatDateKey(selectedDate);
+                const dayName = DAY_NAMES[selectedDate.getDay()];
+                const dayRecord = ensureDayRecord(dateKey);
+
+                // 1. Populate Class Dropdown for Homework
+                const hwClassSel = document.getElementById('homework-class-select');
+                hwClassSel.innerHTML = '<option value="">General</option>';
+                state.classes.forEach(c => {
+                    hwClassSel.appendChild(new Option(c.code, c.code));
+                });
+
+                // 2. Render Customizable Hourly Time-Block Grid
+                const grid = document.getElementById('daily-time-grid');
+                grid.innerHTML = '';
+                for (let h = state.settings.startHour; h <= state.settings.endHour; h++) {
+                    const row = document.createElement('div');
+                    row.className = 'time-slot-row';
+
+                    const label = document.createElement('div');
+                    label.className = 'time-slot-label';
+                    label.textContent = formatHourLabel(h);
+
+                    const content = document.createElement('div');
+                    content.className = 'time-slot-content';
+
+                    // Auto-populated recurring classes
+                    state.classes.forEach(cls => {
+                        if (cls.days.includes(dayName) && h >= cls.startHour && h < cls.startHour + (cls.duration || 1)) {
+                            const pill = document.createElement('div');
+                            pill.className = 'block-pill';
+                            pill.innerHTML = `<span><strong>${cls.code}</strong> &middot; ${cls.name} (${cls.location || 'Class'})</span>`;
+                            content.appendChild(pill);
+                        }
+                    });
+
+                    // Scheduled events for this specific date
+                    state.events.filter(ev => ev.date === dateKey).forEach(ev => {
+                        const evHour = parseInt(ev.time.split(':')[0], 10);
+                        if (evHour === h) {
+                            const pill = document.createElement('div');
+                            pill.className = 'block-pill custom';
+                            pill.innerHTML = `<span>${ev.title} (${ev.time})</span>`;
+                            content.appendChild(pill);
+                        }
+                    });
+
+                    // Custom daily time blocks
+                    dayRecord.customBlocks.filter(b => b.hour === h).forEach(blk => {
+                        const pill = document.createElement('div');
+                        pill.className = 'block-pill custom';
+                        pill.innerHTML = `<span>${blk.title}</span><button title="Remove block">&times;</button>`;
+                        pill.querySelector('button').addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            dayRecord.customBlocks = dayRecord.customBlocks.filter(item => item.id !== blk.id);
+                            saveState();
+                            renderDailyView();
+                        });
+                        content.appendChild(pill);
+                    });
+
+                    // Clicking an hour row selects that hour in the quick-block bar & focuses the input
+                    row.addEventListener('click', () => {
+                        blockHourSelect.value = h;
+                        const titleInput = document.getElementById('block-title-input');
+                        titleInput.placeholder = `Block ${formatHourLabel(h)}...`;
+                        titleInput.focus();
+                    });
+
+                    row.appendChild(label);
+                    row.appendChild(content);
+                    grid.appendChild(row);
+                }
+
+                // 3. Render Homework To-Do List
+                const hwList = document.getElementById('daily-homework-list');
+                hwList.innerHTML = '';
+
+                const dueAssignments = state.assignments.filter(a => a.dueDate === dateKey);
+                dueAssignments.forEach(a => {
+                    const li = document.createElement('li');
+                    if (a.done) li.className = 'done';
+                    li.innerHTML = `
+                        <label>
+                            <input type="checkbox" ${a.done ? 'checked' : ''}>
+                            <span>${a.title}</span>
+                        </label>
+                        <span class="tag-pill">${a.classCode} &middot; ${a.weight}</span>
+                    `;
+                    li.querySelector('input').addEventListener('change', (e) => {
+                        a.done = e.target.checked;
+                        saveState();
+                        renderDailyView();
+                    });
+                    hwList.appendChild(li);
+                });
+
+                dayRecord.homeworkTasks.forEach(task => {
+                    const li = document.createElement('li');
+                    if (task.done) li.className = 'done';
+                    li.innerHTML = `
+                        <label>
+                            <input type="checkbox" ${task.done ? 'checked' : ''}>
+                            <span>${task.text}</span>
+                        </label>
+                        ${task.classCode ? `<span class="tag-pill">${task.classCode}</span>` : ''}
+                        <button class="btn-text" title="Delete">&times;</button>
+                    `;
+                    li.querySelector('input').addEventListener('change', (e) => {
+                        task.done = e.target.checked;
+                        saveState();
+                        renderDailyView();
+                    });
+                    li.querySelector('button').addEventListener('click', () => {
+                        dayRecord.homeworkTasks = dayRecord.homeworkTasks.filter(t => t.id !== task.id);
+                        saveState();
+                        renderDailyView();
+                    });
+                    hwList.appendChild(li);
+                });
+
+                if (hwList.children.length === 0) {
+                    hwList.innerHTML = '<li class="subtext">No homework due or added for today.</li>';
+                }
+
+                // 4. Render General Tasks To-Do List
+                const genList = document.getElementById('daily-general-list');
+                genList.innerHTML = '';
+                dayRecord.generalTasks.forEach(task => {
+                    const li = document.createElement('li');
+                    if (task.done) li.className = 'done';
+                    li.innerHTML = `
+                        <label>
+                            <input type="checkbox" ${task.done ? 'checked' : ''}>
+                            <span>${task.text}</span>
+                        </label>
+                        <button class="btn-text" title="Delete">&times;</button>
+                    `;
+                    li.querySelector('input').addEventListener('change', (e) => {
+                        task.done = e.target.checked;
+                        saveState();
+                        renderDailyView();
+                    });
+                    li.querySelector('button').addEventListener('click', () => {
+                        dayRecord.generalTasks = dayRecord.generalTasks.filter(t => t.id !== task.id);
+                        saveState();
+                        renderDailyView();
+                    });
+                    genList.appendChild(li);
+                });
+
+                if (genList.children.length === 0) {
+                    genList.innerHTML = '<li class="subtext">No general tasks yet.</li>';
+                }
+
+                // 5. Render Notes & Future To-Do
+                const notesArea = document.getElementById('daily-notes-area');
+                const futureArea = document.getElementById('future-todo-area');
+                notesArea.value = dayRecord.notes || '';
+                futureArea.value = dayRecord.futureTodo || '';
+
+                notesArea.oninput = () => { dayRecord.notes = notesArea.value; saveState(); };
+                futureArea.oninput = () => { dayRecord.futureTodo = futureArea.value; saveState(); };
+
+                // 6. Render Meals (Synced w/ Weekly)
+                document.querySelectorAll('.daily-meal-input').forEach(inp => {
+                    const mealType = inp.dataset.meal;
+                    inp.value = dayRecord.meals[mealType] || '';
+                    inp.oninput = () => {
+                        dayRecord.meals[mealType] = inp.value;
+                        saveState();
+                    };
+                });
+
+                // 7. Render Workout Tracker (Synced w/ Weekly)
+                const woDone = document.getElementById('daily-workout-done');
+                const woPlan = document.getElementById('daily-workout-plan');
+                const woNotes = document.getElementById('daily-workout-notes');
+
+                woDone.checked = !!dayRecord.workout.done;
+                woPlan.value = dayRecord.workout.plan || '';
+                woNotes.value = dayRecord.workout.notes || '';
+
+                woDone.onchange = () => { dayRecord.workout.done = woDone.checked; saveState(); };
+                woPlan.oninput = () => { dayRecord.workout.plan = woPlan.value; saveState(); };
+                woNotes.oninput = () => { dayRecord.workout.notes = woNotes.value; saveState(); };
+            }
+
+            // Daily Form Event Listeners
+            document.getElementById('add-homework-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const inp = document.getElementById('homework-input');
+                const cls = document.getElementById('homework-class-select').value;
+                const dayRecord = ensureDayRecord(formatDateKey(selectedDate));
+                dayRecord.homeworkTasks.push({ id: 'hw_' + Date.now(), text: inp.value.trim(), classCode: cls, done: false });
+                inp.value = '';
+                saveState();
+                renderDailyView();
+            });
+
+            document.getElementById('add-general-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const inp = document.getElementById('general-input');
+                const dayRecord = ensureDayRecord(formatDateKey(selectedDate));
+                dayRecord.generalTasks.push({ id: 'gt_' + Date.now(), text: inp.value.trim(), done: false });
+                inp.value = '';
+                saveState();
+                renderDailyView();
+            });
+
+            document.getElementById('rollover-btn').addEventListener('click', () => {
+                const prevDate = new Date(selectedDate);
+                prevDate.setDate(prevDate.getDate() - 1);
+                const prevKey = formatDateKey(prevDate);
+                const prevRecord = state.dailyData[prevKey];
+                if (!prevRecord) {
+                    showToast('No tasks found on the previous day to roll over.');
+                    return;
+                }
+                const todayRecord = ensureDayRecord(formatDateKey(selectedDate));
+                let movedCount = 0;
+
+                prevRecord.generalTasks = prevRecord.generalTasks.filter(t => {
+                    if (!t.done) {
+                        todayRecord.generalTasks.push({ ...t, id: 'gt_' + Date.now() + Math.random() });
+                        movedCount++;
+                        return false;
+                    }
+                    return true;
+                });
+
+                prevRecord.homeworkTasks = prevRecord.homeworkTasks.filter(t => {
+                    if (!t.done) {
+                        todayRecord.homeworkTasks.push({ ...t, id: 'hw_' + Date.now() + Math.random() });
+                        movedCount++;
+                        return false;
+                    }
+                    return true;
+                });
+
+                saveState();
+                renderDailyView();
+                showToast(`Rolled over ${movedCount} unfinished task(s) from ${prevKey}.`);
+            });
+
+            // ==================== WEEKLY VIEW RENDERING ====================
+            document.getElementById('toggle-weekly-event-form').addEventListener('click', () => {
+                const form = document.getElementById('weekly-event-form');
+                form.classList.toggle('hidden');
+                document.getElementById('week-event-date').value = formatDateKey(selectedDate);
+            });
+
+            document.getElementById('weekly-event-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const dateVal = document.getElementById('week-event-date').value;
+                const timeVal = document.getElementById('week-event-time').value;
+                const titleVal = document.getElementById('week-event-title').value.trim();
+                const typeVal = document.getElementById('week-event-type').value;
+
+                state.events.push({
+                    id: 'ev_' + Date.now(),
+                    date: dateVal,
+                    time: timeVal,
+                    title: titleVal,
+                    type: typeVal
+                });
+                document.getElementById('week-event-title').value = '';
+                saveState();
+                renderWeeklyView();
+                showToast('Added event to Weekly, Daily, and Monthly schedules!');
+            });
+
+            function renderWeeklyView() {
+                const monday = getMondayOfWeek(selectedDate);
+                const todayKey = formatDateKey(new Date(2026, 10, 18));
+                const daysGrid = document.getElementById('week-days-grid');
+                const mealsTbody = document.getElementById('weekly-meals-tbody');
+                const fitnessList = document.getElementById('weekly-fitness-list');
+
+                daysGrid.innerHTML = '';
+                mealsTbody.innerHTML = '';
+                fitnessList.innerHTML = '';
+
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(monday);
+                    d.setDate(monday.getDate() + i);
+                    const dKey = formatDateKey(d);
+                    const dShort = DAY_NAMES[d.getDay()];
+                    const dayRec = ensureDayRecord(dKey);
+
+                    // 1. Day Column Card
+                    const col = document.createElement('div');
+                    col.className = 'week-day-col' + (dKey === todayKey ? ' today-col' : '');
+
+                    const header = document.createElement('div');
+                    header.className = 'week-day-header';
+                    header.innerHTML = `<h4>${dShort}</h4><span>${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>`;
+                    col.appendChild(header);
+
+                    // Top 3 Priorities for this Day
+                    const prioBox = document.createElement('div');
+                    prioBox.className = 'week-sub-box';
+                    prioBox.innerHTML = '<h5>Top 3 Priorities</h5>';
+                    for (let p = 0; p < 3; p++) {
+                        const pInp = document.createElement('input');
+                        pInp.type = 'text';
+                        pInp.className = 'priority-slot-input';
+                        pInp.placeholder = `Priority #${p + 1}`;
+                        pInp.value = (dayRec.top3 && dayRec.top3[p]) || '';
+                        pInp.oninput = () => {
+                            if (!dayRec.top3) dayRec.top3 = ['', '', ''];
+                            dayRec.top3[p] = pInp.value;
+                            saveState();
+                        };
+                        prioBox.appendChild(pInp);
+                    }
+                    col.appendChild(prioBox);
+
+                    // Schedule (Classes + Events)
+                    const schedBox = document.createElement('div');
+                    schedBox.className = 'week-sub-box';
+                    schedBox.innerHTML = '<h5>Schedule</h5><ul class="week-mini-list"></ul>';
+                    const schedUl = schedBox.querySelector('ul');
+
+                    state.classes.filter(c => c.days.includes(dShort)).forEach(c => {
+                        const li = document.createElement('li');
+                        li.textContent = `${formatHourLabel(c.startHour)} · ${c.code}`;
+                        schedUl.appendChild(li);
+                    });
+
+                    state.events.filter(ev => ev.date === dKey).forEach(ev => {
+                        const li = document.createElement('li');
+                        li.textContent = `${ev.time} · ${ev.title}`;
+                        schedUl.appendChild(li);
+                    });
+
+                    if (schedUl.children.length === 0) {
+                        schedUl.innerHTML = '<li class="subtext">No classes/events</li>';
+                    }
+                    col.appendChild(schedBox);
+
+                    // Important Due Dates / Reminders
+                    const dueBox = document.createElement('div');
+                    dueBox.className = 'week-sub-box';
+                    dueBox.innerHTML = '<h5>Due Dates &amp; Reminders</h5><ul class="week-mini-list"></ul>';
+                    const dueUl = dueBox.querySelector('ul');
+
+                    state.assignments.filter(a => a.dueDate === dKey).forEach(a => {
+                        const li = document.createElement('li');
+                        li.className = 'due-item';
+                        li.textContent = `${a.classCode}: ${a.title} (${a.weight})`;
+                        dueUl.appendChild(li);
+                    });
+
+                    if (dueUl.children.length === 0) {
+                        dueUl.innerHTML = '<li class="subtext">None due</li>';
+                    }
+                    col.appendChild(dueBox);
+                    daysGrid.appendChild(col);
+
+                    // 2. Weekly Meal Planner Row (Two-way synced with Daily Meals)
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td><strong>${dShort}</strong></td>`;
+                    ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(mealType => {
+                        const td = document.createElement('td');
+                        const mInp = document.createElement('input');
+                        mInp.type = 'text';
+                        mInp.value = dayRec.meals[mealType] || '';
+                        mInp.placeholder = '...';
+                        mInp.oninput = () => {
+                            dayRec.meals[mealType] = mInp.value;
+                            saveState();
+                        };
+                        td.appendChild(mInp);
+                        tr.appendChild(td);
+                    });
+                    mealsTbody.appendChild(tr);
+
+                    // 3. Weekly Fitness Planner Row (Two-way synced with Daily Workout)
+                    const fitRow = document.createElement('div');
+                    fitRow.className = 'fitness-day-row';
+                    fitRow.innerHTML = `<strong>${dShort} (${d.getDate()})</strong>`;
+                    const fInp = document.createElement('input');
+                    fInp.type = 'text';
+                    fInp.placeholder = 'Plan workout or rest day...';
+                    fInp.value = dayRec.workout.plan || '';
+                    fInp.oninput = () => {
+                        dayRec.workout.plan = fInp.value;
+                        saveState();
+                    };
+                    fitRow.appendChild(fInp);
+                    fitnessList.appendChild(fitRow);
+                }
+            }
+
+            // ==================== MONTHLY VIEW RENDERING ====================
+            document.getElementById('toggle-monthly-event-form').addEventListener('click', () => {
+                const form = document.getElementById('monthly-event-form');
+                form.classList.toggle('hidden');
+                document.getElementById('month-event-date').value = formatDateKey(selectedDate);
+            });
+
+            document.getElementById('monthly-event-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const dateStr = document.getElementById('month-event-date').value;
+                const timeStr = document.getElementById('month-event-time').value;
+                const title = document.getElementById('month-event-title').value.trim();
+                const type = document.getElementById('month-event-type').value;
+                state.events.push({ id: 'ev_' + Date.now(), date: dateStr, time: timeStr, title, type });
+                document.getElementById('month-event-title').value = '';
+                saveState();
+                renderMonthlyView();
+                showToast('Important date added to calendar!');
+            });
+
+            function renderMonthlyView() {
+                const year = selectedDate.getFullYear();
+                const month = selectedDate.getMonth();
+                const monthKey = formatMonthKey(selectedDate);
+                const todayKey = formatDateKey(new Date(2026, 10, 18));
+
+                document.getElementById('monthly-grid-heading').textContent = selectedDate.toLocaleDateString('en-US', {
+                    month: 'long', year: 'numeric'
+                });
+
+                const grid = document.getElementById('monthly-calendar-grid');
+                grid.innerHTML = '';
+
+                const firstDayIndex = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                for (let blank = 0; blank < firstDayIndex; blank++) {
+                    const emptyCell = document.createElement('div');
+                    emptyCell.className = 'cal-day-cell empty';
+                    grid.appendChild(emptyCell);
+                }
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const cellDate = new Date(year, month, day);
+                    const cellKey = formatDateKey(cellDate);
+                    const cell = document.createElement('div');
+                    cell.className = 'cal-day-cell' + (cellKey === todayKey ? ' is-today' : '');
+
+                    cell.innerHTML = `<div class="cal-day-num">${day}</div>`;
+
+                    state.assignments.filter(a => a.dueDate === cellKey).forEach(a => {
+                        const badge = document.createElement('div');
+                        badge.className = 'cal-badge assignment';
+                        badge.textContent = `${a.classCode}: ${a.title}`;
+                        cell.appendChild(badge);
+                    });
+
+                    state.events.filter(ev => ev.date === cellKey).forEach(ev => {
+                        const badge = document.createElement('div');
+                        badge.className = 'cal-badge event';
+                        badge.textContent = ev.title;
+                        cell.appendChild(badge);
+                    });
+
+                    // Clicking a calendar day jumps straight to that day's Daily Spread
+                    cell.addEventListener('click', () => {
+                        selectedDate = cellDate;
+                        document.querySelector('.nav-item[data-view="daily"]').click();
+                    });
+
+                    grid.appendChild(cell);
+                }
+
+                // Top Priorities for the Month
+                const prioList = document.getElementById('monthly-priorities-list');
+                prioList.innerHTML = '';
+                if (!state.monthlyPriorities[monthKey]) {
+                    state.monthlyPriorities[monthKey] = [];
+                }
+
+                state.monthlyPriorities[monthKey].forEach(item => {
+                    const li = document.createElement('li');
+                    if (item.done) li.className = 'done';
+                    li.innerHTML = `
+                        <label>
+                            <input type="checkbox" ${item.done ? 'checked' : ''}>
+                            <span>${item.text}</span>
+                        </label>
+                        <button class="btn-text">&times;</button>
+                    `;
+                    li.querySelector('input').addEventListener('change', (e) => {
+                        item.done = e.target.checked;
+                        saveState();
+                        renderMonthlyView();
+                    });
+                    li.querySelector('button').addEventListener('click', () => {
+                        state.monthlyPriorities[monthKey] = state.monthlyPriorities[monthKey].filter(p => p.id !== item.id);
+                        saveState();
+                        renderMonthlyView();
+                    });
+                    prioList.appendChild(li);
+                });
+            }
+
+            document.getElementById('add-monthly-priority-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const inp = document.getElementById('monthly-priority-input');
+                const monthKey = formatMonthKey(selectedDate);
+                if (!state.monthlyPriorities[monthKey]) state.monthlyPriorities[monthKey] = [];
+                state.monthlyPriorities[monthKey].push({ id: 'mp_' + Date.now(), text: inp.value.trim(), done: false });
+                inp.value = '';
+                saveState();
+                renderMonthlyView();
+            });
+
+            // ==================== DOCUMENT UPLOAD & STAGING PIPELINE ====================
+            const uploadModal = document.getElementById('upload-modal');
+            const docRawText = document.getElementById('doc-raw-text');
+            const stagingTbody = document.getElementById('staging-tbody');
+            const confirmStagingBtn = document.getElementById('confirm-staging-btn');
+
+            document.getElementById('open-upload-modal').addEventListener('click', () => uploadModal.classList.add('active'));
+            document.getElementById('close-upload-modal').addEventListener('click', () => uploadModal.classList.remove('active'));
+            document.getElementById('cancel-upload-modal').addEventListener('click', () => uploadModal.classList.remove('active'));
+
+            document.getElementById('doc-file-input').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    docRawText.value = ev.target.result;
+                };
+                reader.readAsText(file);
+            });
+
+            document.getElementById('load-sample-doc-btn').addEventListener('click', () => {
+                docRawText.value = [
+                    'Class: PSYC 101 | Intro to Psychology | Days: Tue, Thu | Time: 14:00 | Location: Liberal Arts 102',
+                    'Assignment: PSYC 101 | Research Paper Outline | Due: 2026-11-21 | Weight: 15% | Type: Homework',
+                    'Assignment: MGIS 130 | Final Live Demo | Due: 2026-12-02 | Weight: 25% | Type: Exam',
+                    'Event: Study Group Review Session | Date: 2026-11-22 | Time: 16:00'
+                ].join('\n');
+            });
+
+            document.getElementById('parse-doc-btn').addEventListener('click', () => {
+                const lines = docRawText.value.split('\n').map(l => l.trim()).filter(Boolean);
+                stagingItems = [];
+
+                lines.forEach(line => {
+                    const parts = line.split('|').map(p => p.trim());
+                    const lower = line.toLowerCase();
+
+                    if (lower.startsWith('class:')) {
+                        const code = parts[0].replace(/^class:\s*/i, '');
+                        const name = parts[1] || code;
+                        const daysStr = (parts.find(p => /^days:/i.test(p)) || 'Days: Mon, Wed').replace(/^days:\s*/i, '');
+                        const timeStr = (parts.find(p => /^time:/i.test(p)) || 'Time: 09:00').replace(/^time:\s*/i, '');
+                        const locStr = (parts.find(p => /^location:/i.test(p)) || 'Location: Campus').replace(/^location:\s*/i, '');
+                        stagingItems.push({
+                            category: 'Class',
+                            course: code,
+                            title: `${name} (${locStr})`,
+                            dateOrDays: daysStr,
+                            timeOrWeight: timeStr
+                        });
+                    } else if (lower.startsWith('assignment:')) {
+                        const course = parts[0].replace(/^assignment:\s*/i, '');
+                        const title = parts[1] || 'Course Assignment';
+                        const due = (parts.find(p => /^due:/i.test(p)) || `Due: ${formatDateKey(selectedDate)}`).replace(/^due:\s*/i, '');
+                        const weight = (parts.find(p => /^weight:/i.test(p)) || 'Weight: 10%').replace(/^weight:\s*/i, '');
+                        const isExam = /exam|midterm|final/i.test(line);
+                        stagingItems.push({
+                            category: isExam ? 'Exam' : 'Assignment',
+                            course,
+                            title,
+                            dateOrDays: due,
+                            timeOrWeight: weight
+                        });
+                    } else {
+                        const title = parts[0].replace(/^event:\s*/i, '');
+                        const date = (parts.find(p => /^date:/i.test(p)) || `Date: ${formatDateKey(selectedDate)}`).replace(/^date:\s*/i, '');
+                        const time = (parts.find(p => /^time:/i.test(p)) || 'Time: 12:00').replace(/^time:\s*/i, '');
+                        stagingItems.push({
+                            category: 'Event',
+                            course: 'Personal',
+                            title,
+                            dateOrDays: date,
+                            timeOrWeight: time
+                        });
+                    }
+                });
+
+                renderStagingTable();
+            });
+
+            document.getElementById('add-staging-row-btn').addEventListener('click', () => {
+                stagingItems.push({
+                    category: 'Assignment',
+                    course: state.classes[0]?.code || 'COURSE 101',
+                    title: 'New Deliverable',
+                    dateOrDays: formatDateKey(selectedDate),
+                    timeOrWeight: '10%'
+                });
+                renderStagingTable();
+            });
+
+            function renderStagingTable() {
+                stagingTbody.innerHTML = '';
+                if (stagingItems.length === 0) {
+                    stagingTbody.innerHTML = '<tr><td colspan="6" class="empty-cell">No items staged yet.</td></tr>';
+                    confirmStagingBtn.disabled = true;
+                    return;
+                }
+                confirmStagingBtn.disabled = false;
+
+                stagingItems.forEach((item, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>
+                            <select data-field="category">
+                                <option ${item.category === 'Class' ? 'selected' : ''}>Class</option>
+                                <option ${item.category === 'Assignment' ? 'selected' : ''}>Assignment</option>
+                                <option ${item.category === 'Exam' ? 'selected' : ''}>Exam</option>
+                                <option ${item.category === 'Event' ? 'selected' : ''}>Event</option>
+                            </select>
+                        </td>
+                        <td><input type="text" data-field="course" value="${item.course}"></td>
+                        <td><input type="text" data-field="title" value="${item.title}"></td>
+                        <td><input type="text" data-field="dateOrDays" value="${item.dateOrDays}"></td>
+                        <td><input type="text" data-field="timeOrWeight" value="${item.timeOrWeight}"></td>
+                        <td><button type="button" class="btn-text">&times;</button></td>
+                    `;
+                    tr.querySelectorAll('input, select').forEach(el => {
+                        el.addEventListener('change', () => {
+                            stagingItems[idx][el.dataset.field] = el.value;
+                        });
+                    });
+                    tr.querySelector('button').addEventListener('click', () => {
+                        stagingItems.splice(idx, 1);
+                        renderStagingTable();
+                    });
+                    stagingTbody.appendChild(tr);
+                });
+            }
+
+            // Commit Staged Items & Auto-Distribute to Daily, Weekly, and Monthly Views
+            confirmStagingBtn.addEventListener('click', () => {
+                stagingItems.forEach(item => {
+                    if (item.category === 'Class') {
+                        const parsedDays = item.dateOrDays.split(',').map(d => d.trim().slice(0, 3));
+                        const hourNum = parseInt(item.timeOrWeight.split(':')[0], 10) || 9;
+                        state.classes.push({
+                            id: 'cls_' + Date.now() + Math.random(),
+                            code: item.course,
+                            name: item.title,
+                            days: parsedDays,
+                            startHour: hourNum,
+                            duration: 1,
+                            location: 'Campus'
+                        });
+                    } else if (item.category === 'Assignment' || item.category === 'Exam') {
+                        state.assignments.push({
+                            id: 'asg_' + Date.now() + Math.random(),
+                            classCode: item.course,
+                            title: item.title,
+                            dueDate: item.dateOrDays,
+                            weight: item.timeOrWeight,
+                            isExam: item.category === 'Exam',
+                            done: false
+                        });
+                    } else {
+                        state.events.push({
+                            id: 'ev_' + Date.now() + Math.random(),
+                            date: item.dateOrDays,
+                            time: item.timeOrWeight || '12:00',
+                            title: item.title,
+                            type: 'event'
+                        });
+                    }
+                });
+
+                stagingItems = [];
+                docRawText.value = '';
+                renderStagingTable();
+                uploadModal.classList.remove('active');
+                saveState();
+                renderAll();
+                showToast('Items distributed across Daily, Weekly, and Monthly views!');
+            });
+
+            // ==================== CLASSES & MASTER ASSIGNMENT MODAL ====================
+            const masterModal = document.getElementById('master-modal');
+            const filterClassSelect = document.getElementById('filter-class-select');
+            const sortAssignmentsSelect = document.getElementById('sort-assignments-select');
+
+            document.getElementById('open-master-btn').addEventListener('click', () => {
+                renderMasterModal();
+                masterModal.classList.add('active');
+            });
+            document.getElementById('close-master-modal').addEventListener('click', () => masterModal.classList.remove('active'));
+            filterClassSelect.addEventListener('change', renderMasterModal);
+            sortAssignmentsSelect.addEventListener('change', renderMasterModal);
+
+            function renderMasterModal() {
+                const classesGrid = document.getElementById('master-classes-grid');
+                classesGrid.innerHTML = '';
+
+                const prevFilter = filterClassSelect.value;
+                filterClassSelect.innerHTML = '<option value="ALL">All Classes</option>';
+
+                state.classes.forEach(c => {
+                    filterClassSelect.appendChild(new Option(c.code, c.code));
+                    const card = document.createElement('div');
+                    card.className = 'class-card';
+                    card.innerHTML = `
+                        <h4>${c.code}</h4>
+                        <p class="subtext">${c.name}</p>
+                        <p class="subtext mt-8"><strong>${c.days.join(', ')}</strong> at ${formatHourLabel(c.startHour)}</p>
+                    `;
+                    classesGrid.appendChild(card);
+                });
+                filterClassSelect.value = prevFilter || 'ALL';
+
+                const tbody = document.getElementById('master-assignments-tbody');
+                tbody.innerHTML = '';
+
+                let list = [...state.assignments];
+                if (filterClassSelect.value !== 'ALL') {
+                    list = list.filter(a => a.classCode === filterClassSelect.value);
+                }
+
+                if (sortAssignmentsSelect.value === 'weight') {
+                    list.sort((a, b) => parseFloat(b.weight) - parseFloat(a.weight));
+                } else {
+                    list.sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+                }
+
+                list.forEach(a => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><input type="checkbox" ${a.done ? 'checked' : ''}></td>
+                        <td><strong>${a.classCode}</strong></td>
+                        <td>${a.title}</td>
+                        <td>${a.dueDate}</td>
+                        <td>${a.weight}</td>
+                        <td><button class="btn-text">&times;</button></td>
+                    `;
+                    tr.querySelector('input').addEventListener('change', (e) => {
+                        a.done = e.target.checked;
+                        saveState();
+                        renderAll();
+                    });
+                    tr.querySelector('button').addEventListener('click', () => {
+                        state.assignments = state.assignments.filter(item => item.id !== a.id);
+                        saveState();
+                        renderMasterModal();
+                        renderAll();
+                    });
+                    tbody.appendChild(tr);
+                });
+            }
+
+            // Master Render Orchestrator
+            function renderAll() {
+                updateHeaderDateLabel();
+                renderSmartAlerts();
+                if (currentView === 'daily') renderDailyView();
+                if (currentView === 'weekly') renderWeeklyView();
+                if (currentView === 'monthly') renderMonthlyView();
+            }
+
+            initTimeRangeSelectors();
+            renderAll();
+        });
+    </script>
+</body>
+</html>
