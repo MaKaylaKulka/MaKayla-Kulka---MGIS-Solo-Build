@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Type A Student Planner</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation (3 Core Tabs) -->
+        <aside class="sidebar">
+            <div>
+                <div class="brand">
+                    <h2>Type A <span>Planner</span></h2>
+                    <p>Phase 1 · Functional MVP</p>
+                </div>
+                <nav class="nav-links">
+                    <button class="nav-item active" data-view="daily">Daily Spread</button>
+                    <button class="nav-item" data-view="weekly">Weekly Spread</button>
+                    <button class="nav-item" data-view="monthly">Monthly Calendar</button>
+                </nav>
+
+                <!-- Quick Alert Box for Upcoming Deadlines -->
+                <div class="sidebar-alerts" id="sidebar-alerts">
+                    <h4>Smart Reminders</h4>
+                    <ul id="smart-alerts-list">
+                        <li>No urgent alerts</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <button class="btn btn-outline full-width" id="reset-demo-btn" title="Restore sample RIT schedule & assignments">Reset Demo Data</button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <h1 id="view-title">Daily Spread</h1>
+                    <div class="date-controls">
+                        <button class="btn-icon" id="prev-period-btn" title="Previous">&larr;</button>
+                        <span id="active-date-label">Wednesday, November 18, 2026</span>
+                        <button class="btn-icon" id="next-period-btn" title="Next">&rarr;</button>
+                        <button class="btn-text" id="today-btn">Today</button>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline" id="open-master-btn">Classes &amp; Assignments</button>
+                    <button class="btn btn-primary" id="open-upload-modal">+ Upload Documents</button>
+                </div>
+            </header>
+
+            <!-- ==================== DAILY VIEW ==================== -->
+            <section class="view-section active" id="daily-view">
+                <div class="daily-layout">
+                    <!-- Left Column: Customizable Time-Block Schedule -->
+                    <div class="card timeblock-card">
+                        <div class="card-header">
+                            <div>
+                                <h2>Hourly Time-Block Schedule</h2>
+                                <p class="subtext">Classes auto-populate; click any slot to block time</p>
+                            </div>
+                            <div class="time-range-controls">
+                                <label>From:
+                                    <select id="start-hour-select"></select>
+                                </label>
+                                <label>To:
+                                    <select id="end-hour-select"></select>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="time-grid" id="daily-time-grid"></div>
+                    </div>
+
+                    <!-- Middle Column: Dual To-Do Lists & Notes/Future -->
+                    <div class="daily-middle-col">
+                        <!-- Homework To-Do List -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Homework To-Do</h2>
+                                <span class="badge">Auto + Manual</span>
+                            </div>
+                            <form class="inline-add-form" id="add-homework-form">
+                                <input type="text" id="homework-input" placeholder="Add homework task..." required>
+                                <select id="homework-class-select">
+                                    <option value="">General</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary btn-sm">+</button>
+                            </form>
+                            <ul class="checkbox-list" id="daily-homework-list"></ul>
+                        </div>
+
+                        <!-- General Tasks To-Do List -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>General Tasks</h2>
+                                <button class="btn-text" id="rollover-btn" title="Move unfinished tasks from previous day to today">Rollover Unfinished</button>
+                            </div>
+                            <form class="inline-add-form" id="add-general-form">
+                                <input type="text" id="general-input" placeholder="Add general task..." required>
+                                <button type="submit" class="btn btn-primary btn-sm">+</button>
+                            </form>
+                            <ul class="checkbox-list" id="daily-general-list"></ul>
+                        </div>
+
+                        <!-- Notes & Future To-Do -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Notes &amp; Future To-Do</h2>
+                                <span class="subtext">Auto-saved</span>
+                            </div>
+                            <div class="notes-split">
+                                <div>
+                                    <label class="field-label">Daily Scratchpad / Notes</label>
+                                    <textarea id="daily-notes-area" rows="4" placeholder="Lecture notes, reminders, brain dump..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="field-label">Future To-Do Backlog</label>
+                                    <textarea id="future-todo-area" rows="4" placeholder="Tasks to schedule later this month..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Meals & Workout Tracker -->
+                    <div class="daily-right-col">
+                        <!-- Daily Meals (Synced with Weekly Meal Plan) -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Today's Meals</h2>
+                                <span class="badge">Synced w/ Weekly</span>
+                            </div>
+                            <div class="meal-fields">
+                                <div class="field-group">
+                                    <label>Breakfast</label>
+                                    <input type="text" data-meal="breakfast" class="daily-meal-input" placeholder="Plan breakfast...">
+                                </div>
+                                <div class="field-group">
+                                    <label>Lunch</label>
+                                    <input type="text" data-meal="lunch" class="daily-meal-input" placeholder="Plan lunch...">
+                                </div>
+                                <div class="field-group">
+                                    <label>Dinner</label>
+                                    <input type="text" data-meal="dinner" class="daily-meal-input" placeholder="Plan dinner...">
+                                </div>
+                                <div class="field-group">
+                                    <label>Snacks / Hydration</label>
+                                    <input type="text" data-meal="snacks" class="daily-meal-input" placeholder="Snacks & water goal...">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Daily Workout Schedule & Tracker (Synced with Weekly Fitness) -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Workout &amp; Fitness</h2>
+                                <label class="check-inline">
+                                    <input type="checkbox" id="daily-workout-done"> Completed
+                                </label>
+                            </div>
+                            <div class="field-group">
+                                <label>Planned Workout / Activity</label>
+                                <input type="text" id="daily-workout-plan" placeholder="e.g., Upper Body Strength + 20m Walk">
+                            </div>
+                            <div class="field-group" style="margin-top: 10px;">
+                                <label>Workout Notes / Sets / Reps</label>
+                                <textarea id="daily-workout-notes" rows="4" placeholder="Log weights, cardio time, or energy level..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== WEEKLY VIEW ==================== -->
+            <section class="view-section" id="weekly-view">
+                <!-- Weekly Top Action Bar: Add Event/Activity -->
+                <div class="card mb-20">
+                    <div class="card-header">
+                        <h2>Weekly Breakdown (Mon &ndash; Sun)</h2>
+                        <button class="btn btn-primary btn-sm" id="toggle-weekly-event-form">+ Add Event / Activity</button>
+                    </div>
+                    <form class="weekly-event-form hidden" id="weekly-event-form">
+                        <input type="date" id="week-event-date" required>
+                        <input type="time" id="week-event-time" value="15:00" required>
+                        <input type="text" id="week-event-title" placeholder="Event or activity name..." required>
+                        <select id="week-event-type">
+                            <option value="event">Personal / Activity</option>
+                            <option value="study">Study Session</option>
+                            <option value="exam">Exam / Quiz</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">Add to Schedule</button>
+                    </form>
+
+                    <!-- 7-Day Columns Grid -->
+                    <div class="week-days-grid" id="week-days-grid"></div>
+                </div>
+
+                <!-- Weekly Meal Planner & Weekly Fitness Planner -->
+                <div class="weekly-bottom-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Weekly Meal Planner</h2>
+                            <span class="subtext">Edits sync automatically to Daily View</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="planner-table compact-table" id="weekly-meals-table">
+                                <thead>
+                                    <tr>
+                                        <th>Day</th>
+                                        <th>Breakfast</th>
+                                        <th>Lunch</th>
+                                        <th>Dinner</th>
+                                        <th>Snacks</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="weekly-meals-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Weekly Fitness &amp; Workout Plan</h2>
+                            <span class="subtext">Synced to Daily Tracker</span>
+                        </div>
+                        <div class="weekly-fitness-list" id="weekly-fitness-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== MONTHLY VIEW ==================== -->
+            <section class="view-section" id="monthly-view">
+                <div class="monthly-layout">
+                    <!-- Left: Monthly Calendar Grid -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 id="monthly-grid-heading">November 2026</h2>
+                            <button class="btn btn-primary btn-sm" id="add-monthly-event-btn">+ Add Important Date</button>
+                        </div>
+                        <div class="calendar-weekdays">
+                            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                        </div>
+                        <div class="monthly-calendar-grid" id="monthly-calendar-grid"></div>
+                    </div>
+
+                    <!-- Right: Top Priorities for the Month -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Top Priorities for the Month</h2>
+                            <span class="badge">Monthly Goals</span>
+                        </div>
+                        <form class="inline-add-form" id="add-monthly-priority-form">
+                            <input type="text" id="monthly-priority-input" placeholder="Add monthly priority..." required>
+                            <button type="submit" class="btn btn-primary btn-sm">+</button>
+                        </form>
+                        <ul class="checkbox-list" id="monthly-priorities-list"></ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ==================== DOCUMENT UPLOAD & STAGING MODAL ==================== -->
+    <div class="modal" id="upload-modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>Document Upload &amp; Auto-Distribution Staging</h2>
+                <button class="close-btn" id="close-upload-modal">&times;</button>
+            </div>
+            <p class="subtext mb-12">Upload a file or paste text from your syllabus, class schedule, or calendar. Review the extracted items below before saving—they will automatically populate your Daily, Weekly, and Monthly spreads.</p>
+
+            <div class="upload-controls-row">
+                <div class="field-group">
+                    <label>Document Type</label>
+                    <select id="doc-type-select">
+                        <option value="syllabus">Course Syllabus (Assignments + Class Times)</option>
+                        <option value="schedule">Class Schedule (Recurring Weekly Classes)</option>
+                        <option value="general">Other Document / Event List</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label>Select File (.txt, .csv, .pdf, .ics)</label>
+                    <input type="file" id="doc-file-input" accept=".txt,.csv,.pdf,.doc,.docx,.ics">
+                </div>
+                <div class="field-group" style="justify-content: flex-end;">
+                    <button type="button" class="btn btn-outline btn-sm" id="load-sample-doc-btn">Load Sample Syllabus</button>
+                </div>
+            </div>
+
+            <div class="field-group mb-12">
+                <label>Document Text / Paste Syllabus or Schedule Lines</label>
+                <textarea id="doc-raw-text" rows="4" placeholder="Example format:
+Class: MGIS 130 | Days: Mon, Wed | Time: 08:00 - 09:15 | Location: Golisano Hall
+Assignment: MGIS 130 | Final Project Demo | Due: 2026-11-24 | Weight: 25% | Type: Exam
+Event: Thanksgiving Break Starts | Date: 2026-11-25"></textarea>
+                <button type="button" class="btn btn-primary btn-sm mt-8" id="parse-doc-btn">Extract &amp; Preview Items</button>
+            </div>
+
+            <!-- Staging Review Table -->
+            <div class="staging-box">
+                <div class="staging-header">
+                    <h4>Staging Review (Edit or remove before committing to planner)</h4>
+                    <button type="button" class="btn-text" id="add-staging-row-btn">+ Add Manual Row</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="planner-table compact-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Course / Tag</th>
+                                <th>Title</th>
+                                <th>Date or Days</th>
+                                <th>Time / Weight</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="staging-tbody">
+                            <tr><td colspan="6" class="empty-cell">Parse a document or load a sample above to preview extracted items.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-upload-modal">Cancel</button>
+                <button class="btn btn-primary" id="confirm-staging-btn" disabled>Confirm &amp; Distribute to Planner</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== CLASSES & MASTER ASSIGNMENTS MODAL ==================== -->
+    <div class="modal" id="master-modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>Classes &amp; Master Assignment Database</h2>
+                <button class="close-btn" id="close-master-modal">&times;</button>
+            </div>
+
+            <h4 class="mb-8">Active Courses</h4>
+            <div class="classes-grid mb-20" id="master-classes-grid"></div>
+
+            <div class="staging-header">
+                <h4>Master Assignment Table</h4>
+                <div class="filter-row">
+                    <select id="filter-class-select">
+                        <option value="ALL">All Classes</option>
+                    </select>
+                    <select id="sort-assignments-select">
+                        <option value="dueDate">Sort by Due Date</option>
+                        <option value="weight">Sort by Grade Weight (High &rarr; Low)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="planner-table compact-table">
+                    <thead>
+                        <tr>
+                            <th>Done</th>
+                            <th>Course</th>
+                            <th>Assignment</th>
+                            <th>Due Date</th>
+                            <th>Weight</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="master-assignments-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
