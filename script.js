@@ -606,17 +606,273 @@ document.addEventListener('DOMContentLoaded', () => {
     const docRawText = document.getElementById('doc-raw-text');
     const stagingTbody = document.getElementById('staging-tbody');
     const confirmStagingBtn = document.getElementById('confirm-staging-btn');
+    const fileStatusEl = document.getElementById('selected-files-status');
+
+    if (window.pdfjsLib) {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
 
     document.getElementById('open-upload-modal').addEventListener('click', () => uploadModal.classList.add('active'));
     document.getElementById('close-upload-modal').addEventListener('click', () => uploadModal.classList.remove('active'));
     document.getElementById('cancel-upload-modal').addEventListener('click', () => uploadModal.classList.remove('active'));
 
-    document.getElementById('doc-file-input').addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => { docRawText.value = ev.target.result; };
-        reader.readAsText(file);
+    async function extractTextFromSingleFile(file) {
+        const name = file.name.toLowerCase();
+        if (name.endsWith('.pdf')) {
+            if (!window.pdfjsLib) throw new Error('PDF reader still loading—please try again.');
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = '';
+            for (let p = 1; p <= pdf.numPages; p++) {
+                const page = await pdf.getPage(p);
+                const content = await page.getTextContent();
+                let lastY = null;
+                let pageLines = [];
+                let currentLine = [];
+                content.items.forEach(item => {
+                    const y = item.transform ? Math.round(item.transform[5]) : 0;
+                    if (lastY !== null && Math.abs(y - lastY) > 6) {
+                        pageLines.push(currentLine.join(' '));
+                        currentLine = [];
+                    }
+                    currentLine.push(item.str);
+                    lastY = y;
+                });
+                if (currentLine.length) pageLines.push(currentLine.join(' '));
+                fullText += pageLines.join('\n') + '\n';
+            }
+            return fullText;
+        } else if (name.endsWith('.docx')) {
+            if (!window.JSZip) throw new Error('DOCX reader still loading—please try again.');
+            const arrayBuffer = await file.arrayBuffer();
+            const zip = await window.JSZip.loadAsync(arrayBuffer);
+            const xmlFile = zip.file('word/document.xml');
+            if (!xmlFile) return '';
+            const xmlText = await xmlFile.async('text');
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, 'application/xml');
+            const paragraphs = Array.from(xmlDoc.getElementsByTagName('w:p'));
+            return paragraphs.map(p => Array.from(p.getElementsByTagName('w:t')).map(t => t.textContent).join('')).join('\n');
+        } else {
+            return await file.text();
+        }
+    }
+
+    document.getElementById('doc-file-input').addEventListener('change', async (e) => {
+        const files = Array.from(e.target.files);
+        if (!files.length) return;
+        if (fileStatusEl) fileStatusEl.textContent = `Reading ${files.length} file(s)...`;
+        let combinedText = docRawText.value ? docRawText.value.trim() + '\n\n' : '';
+        let successCount = 0;
+
+        for (const file of files) {
+            try {
+                const extracted = await extractTextFromSingleFile(file);
+                combinedText += `--- FILE: ${file.name} ---\n${extracted.trim()}\n\n`;
+                successCount++;
+            } catch (err) {
+                showToast(`Could not read ${file.name}: ${err.message}`);
+            }
+        }
+
+        docRawText.value = combinedText.trim();
+        if (fileStatusEl) fileStatusEl.textContent = `Loaded ${successCount} of ${files.length} file(s)`;
+        if (successCount > 0) {
+            runSmartDocumentParser();
+            showToast(`Extracted text from ${successCount} document(s)! Review items below.`);
+        }
+    });
+
+    document.getElementById('load-sample-doc-btn').addEventListener('click', () => {
+        docRawText.value = [
+            '--- FILE: PSYC101_Syllabus_Fall2026.pdf ---',
+            'PSYC 101 - Introduction to Psychology',
+            'Class Meeting Times: Tue, Thu 2:00 PM - 3:15 PM | Liberal Arts 102',
+            'Research Paper Outline due Nov 21, 2026 (15%)',
+            'Midterm Exam #2 on Nov 25, 2026 - 25% of final grade',
+            'TODO: Complete SONA research participation credits before Dec 1',
+            '--- FILE: Campus_Events.ics ---',
+            'Event: Academic Success Study Group | Date: 2026-11-22 | Time: 16:00'
+        ].join('\n');
+        runSmartDocumentParser();
+    });
+
+    function normalizeExtractedDate(rawStr) {
+        if (!rawStr) return formatDateKey(selectedDate);
+        const isoMatch = rawStr.match(/\b(20\d{2})-(\d{1,2})-(\d{1,2})\b/);
+        if (isoMatch) return `${isoMatch[1]}-${isoMatch[2].padStart(2, '0')}-${isoMatch[3].padStart(2, '0')}`;
+
+        const slashMatch = rawStr.match(/\b(\d{1,2})\/(\d{1,2})(?:\/(20\d{2}|\d{2}))?\b/);
+        if (slashMatch) {
+            const y = slashMatch[3] ? (slashMatch[3].length === 2 ? '20' + slashMatch[3] : slashMatch[3]) : String(selectedDate.getFullYear());
+            return `${y}-${slashMatch[1].padStart(2, '0')}-${slashMatch[2].padStart(2, '0')}`;
+        }
+
+        const months = { jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06', jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12' };
+        const monthMatch = rawStr.match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+(\d{1,2})(?:,?\s*(20\d{2}))?\b/i);
+        if (monthMatch) {
+            const m = months[monthMatch[1].slice(0, 3).toLowerCase()];
+            const d = monthMatch[2].padStart(2, '0');
+            const y = monthMatch[3] || String(selectedDate.getFullYear());
+            return `${y}-${m}-${d}`;
+        }
+        return null;
+    }
+
+    function parseDaysToken(text) {
+        const days = [];
+        if (/\bMWF\b/i.test(text)) return ['Mon', 'Wed', 'Fri'];
+        if (/\bTR\b|\bTTh\b/i.test(text)) return ['Tue', 'Thu'];
+        if (/\bMW\b/i.test(text)) return ['Mon', 'Wed'];
+        if (/\bMon/i.test(text)) days.push('Mon');
+        if (/\bTue/i.test(text)) days.push('Tue');
+        if (/\bWed/i.test(text)) days.push('Wed');
+        if (/\bThu/i.test(text)) days.push('Thu');
+        if (/\bFri/i.test(text)) days.push('Fri');
+        if (/\bSat/i.test(text)) days.push('Sat');
+        if (/\bSun/i.test(text)) days.push('Sun');
+        return days;
+    }
+
+    function parseTime24(text) {
+        const m = text.match(/\b(\d{1,2}):(\d{2})\s*(AM|PM)?\b/i);
+        if (!m) return null;
+        let hr = parseInt(m[1], 10);
+        const min = m[2];
+        const meridiem = m[3] ? m[3].toUpperCase() : null;
+        if (meridiem === 'PM' && hr < 12) hr += 12;
+        if (meridiem === 'AM' && hr === 12) hr = 0;
+        return `${String(hr).padStart(2, '0')}:${min}`;
+    }
+
+    function runSmartDocumentParser() {
+        const raw = docRawText.value;
+        stagingItems = [];
+
+        if (raw.includes('BEGIN:VEVENT')) {
+            const vevents = raw.split('BEGIN:VEVENT').slice(1);
+            vevents.forEach(block => {
+                const sumMatch = block.match(/SUMMARY:(.*)/);
+                const dtMatch = block.match(/DTSTART[^:]*:(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2}))?/);
+                if (sumMatch && dtMatch) {
+                    stagingItems.push({
+                        category: 'Event',
+                        course: 'Calendar',
+                        title: sumMatch[1].trim(),
+                        dateOrDays: `${dtMatch[1]}-${dtMatch[2]}-${dtMatch[3]}`,
+                        timeOrWeight: dtMatch[4] ? `${dtMatch[4]}:${dtMatch[5]}` : '12:00'
+                    });
+                }
+            });
+        }
+
+        const lines = raw.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('--- FILE:'));
+        let activeCourse = state.classes[0]?.code || 'COURSE 101';
+
+        lines.forEach(line => {
+            const courseMatch = line.match(/\b([A-Z]{2,5}[\s-]?\d{3}[A-Z]?)\b/);
+            if (courseMatch) activeCourse = courseMatch[1].replace('-', ' ').toUpperCase();
+
+            if (/^todo:/i.test(line) || /\b(action item|remember to|checklist|to-do)\b/i.test(line)) {
+                const cleanTitle = line.replace(/^(todo|to-do|action item):\s*/i, '').trim();
+                const parsedDate = normalizeExtractedDate(line) || formatDateKey(selectedDate);
+                stagingItems.push({ category: 'To-Do', course: activeCourse, title: cleanTitle, dateOrDays: parsedDate, timeOrWeight: 'General' });
+                return;
+            }
+
+            const detectedDays = parseDaysToken(line);
+            const detectedTime = parseTime24(line);
+            const detectedDate = normalizeExtractedDate(line);
+            const weightMatch = line.match(/\b(\d{1,3}(?:\.\d+)?%)\b/);
+            const isExam = /\b(exam|midterm|final|quiz|test)\b/i.test(line);
+            const isAssignmentKeyword = /\b(assignment|homework|hw|project|paper|lab|essay|milestone|deliverable|presentation|reading|due|submit)\b/i.test(line);
+
+            if (detectedDays.length > 0 && detectedTime && !detectedDate) {
+                const cleanName = line.replace(/^class:\s*/i, '').replace(courseMatch ? courseMatch[0] : '', '').replace(/\|/g, ' ').replace(/\s+/g, ' ').trim() || `${activeCourse} Lecture`;
+                stagingItems.push({ category: 'Class', course: activeCourse, title: cleanName.slice(0, 60), dateOrDays: detectedDays.join(', '), timeOrWeight: detectedTime });
+                return;
+            }
+
+            if (detectedDate || isExam || isAssignmentKeyword || /^assignment:/i.test(line) || /^event:/i.test(line)) {
+                if (!detectedDate && !weightMatch && !/^assignment:/i.test(line) && !/^event:/i.test(line)) return;
+                let category = 'Assignment';
+                if (isExam) category = 'Exam';
+                else if (/^event:/i.test(line) || (!isAssignmentKeyword && !weightMatch && !courseMatch)) category = 'Event';
+
+                const cleanTitle = line.replace(/^(assignment|event):\s*/i, '').replace(courseMatch ? courseMatch[0] : '', '').replace(/\|/g, ' ').replace(/\s+/g, ' ').trim();
+                stagingItems.push({
+                    category,
+                    course: category === 'Event' && !courseMatch ? 'Event' : activeCourse,
+                    title: cleanTitle.slice(0, 75) || 'Scheduled Item',
+                    dateOrDays: detectedDate || formatDateKey(selectedDate),
+                    timeOrWeight: category === 'Event' ? (detectedTime || '12:00') : (weightMatch ? weightMatch[1] : '10%')
+                });
+            }
+        });
+
+        renderStagingTable();
+    }
+
+    document.getElementById('parse-doc-btn').addEventListener('click', runSmartDocumentParser);
+
+    document.getElementById('add-staging-row-btn').addEventListener('click', () => {
+        stagingItems.push({ category: 'Assignment', course: state.classes[0]?.code || 'COURSE 101', title: 'New Deliverable', dateOrDays: formatDateKey(selectedDate), timeOrWeight: '10%' });
+        renderStagingTable();
+    });
+
+    function renderStagingTable() {
+        stagingTbody.innerHTML = '';
+        if (stagingItems.length === 0) {
+            stagingTbody.innerHTML = '<tr><td colspan="6" class="empty-cell">No items staged yet.</td></tr>';
+            confirmStagingBtn.disabled = true;
+            return;
+        }
+        confirmStagingBtn.disabled = false;
+        stagingItems.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><select data-field="category"><option ${item.category === 'Class' ? 'selected' : ''}>Class</option><option ${item.category === 'Assignment' ? 'selected' : ''}>Assignment</option><option ${item.category === 'Exam' ? 'selected' : ''}>Exam</option><option ${item.category === 'Event' ? 'selected' : ''}>Event</option><option ${item.category === 'To-Do' ? 'selected' : ''}>To-Do</option></select></td>
+                <td><input type="text" data-field="course" value="${item.course}"></td>
+                <td><input type="text" data-field="title" value="${item.title}"></td>
+                <td><input type="text" data-field="dateOrDays" value="${item.dateOrDays}"></td>
+                <td><input type="text" data-field="timeOrWeight" value="${item.timeOrWeight}"></td>
+                <td><button type="button" class="btn-text">&times;</button></td>
+            `;
+            tr.querySelectorAll('input, select').forEach(el => el.addEventListener('change', () => { stagingItems[idx][el.dataset.field] = el.value; }));
+            tr.querySelector('button').addEventListener('click', () => { stagingItems.splice(idx, 1); renderStagingTable(); });
+            stagingTbody.appendChild(tr);
+        });
+    }
+
+    confirmStagingBtn.addEventListener('click', () => {
+        let addedClasses = 0, addedAssignments = 0, addedEvents = 0, addedTodos = 0;
+        stagingItems.forEach(item => {
+            if (item.category === 'Class') {
+                const parsedDays = item.dateOrDays.split(',').map(d => d.trim().slice(0, 3)).filter(Boolean);
+                const hourNum = parseInt(item.timeOrWeight.split(':')[0], 10) || 9;
+                state.classes.push({ id: 'cls_' + Date.now() + Math.random(), code: item.course, name: item.title, days: parsedDays.length ? parsedDays : ['Mon', 'Wed'], startHour: hourNum, duration: 1, location: 'Campus' });
+                addedClasses++;
+            } else if (item.category === 'Assignment' || item.category === 'Exam') {
+                state.assignments.push({ id: 'asg_' + Date.now() + Math.random(), classCode: item.course, title: item.title, dueDate: item.dateOrDays, weight: item.timeOrWeight, isExam: item.category === 'Exam', done: false });
+                addedAssignments++;
+            } else if (item.category === 'To-Do') {
+                const targetDate = /^\d{4}-\d{2}-\d{2}$/.test(item.dateOrDays) ? item.dateOrDays : formatDateKey(selectedDate);
+                ensureDayRecord(targetDate).generalTasks.push({ id: 'gt_' + Date.now() + Math.random(), text: `${item.course ? '[' + item.course + '] ' : ''}${item.title}`, done: false });
+                addedTodos++;
+            } else {
+                state.events.push({ id: 'ev_' + Date.now() + Math.random(), date: item.dateOrDays, time: item.timeOrWeight || '12:00', title: item.title, type: 'event' });
+                addedEvents++;
+            }
+        });
+        stagingItems = [];
+        docRawText.value = '';
+        if (fileStatusEl) fileStatusEl.textContent = 'No files chosen yet';
+        document.getElementById('doc-file-input').value = '';
+        renderStagingTable();
+        uploadModal.classList.remove('active');
+        saveState();
+        renderAll();
+        showToast(`Distributed ${addedClasses} class(es), ${addedAssignments} assignment(s), ${addedEvents} event(s), and ${addedTodos} to-do(s)!`);
     });
 
     document.getElementById('load-sample-doc-btn').addEventListener('click', () => {
