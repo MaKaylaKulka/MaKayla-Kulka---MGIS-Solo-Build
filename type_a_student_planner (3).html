@@ -1124,49 +1124,6 @@ Final Exam on Dec 2, 2026 worth 30%"></textarea>
                 toastTimer = setTimeout(() => toast.classList.remove('show'), 3600);
             }
 
-            // Default seed data aligned with Nov 18, 2026 so the app is immediately testable
-            function getDefaultState() {
-                return {
-                    settings: {
-                        startHour: 8,  // 8 AM default
-                        endHour: 22    // 10 PM default
-                    },
-                    classes: [
-                        { id: 'c1', code: 'MGIS 130', name: 'Management Information Systems', days: ['Mon', 'Wed'], startHour: 8, duration: 1, location: 'Golisano Hall' },
-                        { id: 'c2', code: 'HSP 310', name: 'Hospitality Operations', days: ['Tue', 'Thu'], startHour: 10, duration: 2, location: 'Saunders 210' },
-                        { id: 'c3', code: 'STAT 145', name: 'Intro to Statistics', days: ['Mon', 'Wed', 'Fri'], startHour: 13, duration: 1, location: 'Gosnell Hall' }
-                    ],
-                    assignments: [
-                        { id: 'a1', classCode: 'MGIS 130', title: 'Phase 1 Functional Build Check-in', dueDate: '2026-11-18', weight: '15%', isExam: false, done: false },
-                        { id: 'a2', classCode: 'HSP 310', title: 'Operations Case Study Analysis', dueDate: '2026-11-20', weight: '20%', isExam: false, done: false },
-                        { id: 'a3', classCode: 'STAT 145', title: 'Unit 3 Probability Exam', dueDate: '2026-11-24', weight: '30%', isExam: true, done: false }
-                    ],
-                    events: [
-                        { id: 'e1', date: '2026-11-19', time: '17:00', title: 'Academic Advisor Check-in', type: 'event' },
-                        { id: 'e2', date: '2026-11-26', time: '12:00', title: 'Thanksgiving Dinner w/ Family', type: 'event' }
-                    ],
-                    dailyData: {
-                        '2026-11-18': {
-                            customBlocks: [
-                                { id: 'b1', hour: 15, title: 'Code Review & GitHub Push' }
-                            ],
-                            homeworkTasks: [
-                                { id: 'hw1', text: 'Complete STAT 145 Practice Set 7', classCode: 'STAT 145', done: false }
-                            ],
-                            generalTasks: [
-                                { id: 'gt1', text: 'Pick up groceries for meal prep', done: false },
-                                { id: 'gt2', text: 'Email group members about presentation', done: true }
-                            ],
-                            notes: 'Focus on getting Phase 1 data flow rock solid before styling.',
-                            futureTodo: '- Order winter boots\n- Outline December finals study schedule',
-                            meals: {
-                                breakfast: 'Greek yogurt, berries & granola',
-                                lunch: 'Chipotle chicken bowl w/ brown rice',
-                                dinner: 'Grilled salmon, quinoa & roasted broccoli',
-                                snacks: 'Apple + 80oz water'
-                            },
-                            workout: {
-                                plan: 'Upper Body Strength (45 mins)',
             // Clean blank initial state so users start with zero pre-populated courses or assignments
             function getDefaultState() {
                 return {
@@ -2569,6 +2526,10 @@ Final Exam on Dec 2, 2026 worth 30%"></textarea>
 
                 if (sortAssignmentsSelect.value === 'weight') {
                     list.sort((a, b) => (parseFloat(b.weight) || 0) - (parseFloat(a.weight) || 0));
+                } else {
+                    list.sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+                }
+
                 if (list.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="6" class="empty-cell">No assignments yet. Upload a syllabus to auto-populate deadlines.</td></tr>';
                 }
