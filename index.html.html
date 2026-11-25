@@ -747,7 +747,7 @@
             </div>
 
             <div class="sidebar-footer">
-                <button class="btn btn-outline full-width" id="reset-demo-btn" title="Restore sample schedule & assignments">Reset Demo Data</button>
+                <button class="btn btn-outline full-width" id="reset-demo-btn" title="Clear all courses, assignments & planner data">Clear All Data</button>
             </div>
         </aside>
 
@@ -1111,7 +1111,7 @@ Final Exam on Dec 2, 2026 worth 30%"></textarea>
     <script>
         // Type A Student Planner - Phase 1 Functional MVP (Relational Data + Surgical Syllabus Auto-Sync)
         document.addEventListener('DOMContentLoaded', () => {
-            const STORAGE_KEY = 'typeA_planner_phase1_v1';
+            const STORAGE_KEY = 'typeA_planner_phase1_clean_v1';
             const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
             // Non-blocking toast banner for feedback
@@ -1167,24 +1167,24 @@ Final Exam on Dec 2, 2026 worth 30%"></textarea>
                             },
                             workout: {
                                 plan: 'Upper Body Strength (45 mins)',
-                                notes: 'Bench press 3x10, Rows 3x12, Shoulder press 3x10',
-                                done: false
-                            },
-                            top3: ['Finish Phase 1 MVP', 'Submit MGIS check-in', 'Hit 80oz water goal']
-                        }
+            // Clean blank initial state so users start with zero pre-populated courses or assignments
+            function getDefaultState() {
+                return {
+                    settings: {
+                        startHour: 8,  // 8 AM default
+                        endHour: 22    // 10 PM default
                     },
-                    monthlyPriorities: {
-                        '2026-11': [
-                            { id: 'mp1', text: 'Finish all 3 phases of Type A Student Planner', done: false },
-                            { id: 'mp2', text: 'Maintain >90% average across all courses', done: false }
-                        ]
-                    }
+                    classes: [],
+                    assignments: [],
+                    events: [],
+                    dailyData: {},
+                    monthlyPriorities: {}
                 };
             }
 
             let state = loadState();
             let currentView = 'daily';
-            let selectedDate = new Date(2026, 10, 18); // Nov 18, 2026 default
+            let selectedDate = new Date();
             let stagingItems = [];
 
             function loadState() {
@@ -1287,7 +1287,7 @@ Final Exam on Dec 2, 2026 worth 30%"></textarea>
             });
 
             document.getElementById('today-btn').addEventListener('click', () => {
-                selectedDate = new Date(2026, 10, 18);
+                selectedDate = new Date();
                 renderAll();
             });
 
@@ -1295,7 +1295,7 @@ Final Exam on Dec 2, 2026 worth 30%"></textarea>
                 state = getDefaultState();
                 saveState();
                 renderAll();
-                showToast('Demo schedule & assignments restored!');
+                showToast('All planner data cleared!');
             });
 
             function updateHeaderDateLabel() {
@@ -1667,7 +1667,7 @@ Final Exam on Dec 2, 2026 worth 30%"></textarea>
 
             function renderWeeklyView() {
                 const monday = getMondayOfWeek(selectedDate);
-                const todayKey = formatDateKey(new Date(2026, 10, 18));
+                const todayKey = formatDateKey(new Date());
                 const daysGrid = document.getElementById('week-days-grid');
                 const mealsTbody = document.getElementById('weekly-meals-tbody');
                 const fitnessList = document.getElementById('weekly-fitness-list');
@@ -1812,7 +1812,7 @@ Final Exam on Dec 2, 2026 worth 30%"></textarea>
                 const year = selectedDate.getFullYear();
                 const month = selectedDate.getMonth();
                 const monthKey = formatMonthKey(selectedDate);
-                const todayKey = formatDateKey(new Date(2026, 10, 18));
+                const todayKey = formatDateKey(new Date());
 
                 document.getElementById('monthly-grid-heading').textContent = selectedDate.toLocaleDateString('en-US', {
                     month: 'long', year: 'numeric'
@@ -2542,6 +2542,10 @@ Final Exam on Dec 2, 2026 worth 30%"></textarea>
                 const prevFilter = filterClassSelect.value;
                 filterClassSelect.innerHTML = '<option value="ALL">All Classes</option>';
 
+                if (state.classes.length === 0) {
+                    classesGrid.innerHTML = '<p class="subtext" style="grid-column: 1 / -1;">No courses added yet. Click "+ Upload Documents" to upload your syllabi or class schedule.</p>';
+                }
+
                 state.classes.forEach(c => {
                     filterClassSelect.appendChild(new Option(c.code, c.code));
                     const card = document.createElement('div');
@@ -2565,8 +2569,8 @@ Final Exam on Dec 2, 2026 worth 30%"></textarea>
 
                 if (sortAssignmentsSelect.value === 'weight') {
                     list.sort((a, b) => (parseFloat(b.weight) || 0) - (parseFloat(a.weight) || 0));
-                } else {
-                    list.sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+                if (list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-cell">No assignments yet. Upload a syllabus to auto-populate deadlines.</td></tr>';
                 }
 
                 list.forEach(a => {
